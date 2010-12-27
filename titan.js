@@ -1,20 +1,20 @@
 
 var test_map = [
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0],
   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+  [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+  [0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0],
+  [0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0],
+  [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+  [0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0],
+  [0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0],
+  [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+  [0,0,0,0,1,0,1,1,1,1,1,0,1,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0],
+  [0,0,0,0,1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 ];
 
 function initTestWorld(world) {
@@ -24,21 +24,23 @@ function initTestWorld(world) {
 //===----------------------------------------------------------------------===//
 // Data
 //===----------------------------------------------------------------------===//
-tiles = [
+TILES = [
   { name: 'grass' },
-  { name: 'stone' },
+  { name: 'stone', clip: true }
 ];
 
-
-objects = [
-  { name: 'player' },
-]
+OBJECTS = [
+  { name: 'player' }
+];
 
 // Directions
 var NORTH = 1;
 var EAST = 2;
 var SOUTH = 3;
 var WEST = 4;
+
+// default move amount
+var DEFAULT_MOVE = 3;
 
 //===----------------------------------------------------------------------===//
 // Entity
@@ -49,6 +51,50 @@ function Entity() {
   this.img = 0;
 }
 
+//===----------------------------------------------------------------------===//
+// Entity.bottom
+//===----------------------------------------------------------------------===//
+Entity.prototype.bottom = function() {
+  return this.y + this.h;
+};
+
+
+//===----------------------------------------------------------------------===//
+// Entity.center_y
+//===----------------------------------------------------------------------===//
+Entity.prototype.center_y = function() {
+  return this.y + (this.h / 2);
+};
+
+
+//===----------------------------------------------------------------------===//
+// Entity.center_x
+//===----------------------------------------------------------------------===//
+Entity.prototype.center_x = function() {
+  return this.x + (this.w / 2);
+};
+
+
+//===----------------------------------------------------------------------===//
+// Entity.top
+//===----------------------------------------------------------------------===//
+Entity.prototype.top = function() {
+  return this.y;
+};
+
+//===----------------------------------------------------------------------===//
+// Entity.left
+//===----------------------------------------------------------------------===//
+Entity.prototype.left = function() {
+  return this.x;
+};
+
+//===----------------------------------------------------------------------===//
+// Entity.right
+//===----------------------------------------------------------------------===//
+Entity.prototype.right = function() {
+  return this.x + this.w;
+};
 
 //===----------------------------------------------------------------------===//
 // Entity.update
@@ -69,17 +115,17 @@ Entity.prototype.draw = function(world) {
 // Entity.drawSprite
 //===----------------------------------------------------------------------===//
 Entity.prototype.drawSprite = function(ctx) {
-  var img = objects[this.img].img;
+  var img = OBJECTS[this.img].img;
   ctx.drawImage(img, this.x, this.y);
 };
 
 
 //===----------------------------------------------------------------------===//
-// move
-//   object requirements: x, y
+// moveObject
+//   object constraints: x, y
 //===----------------------------------------------------------------------===//
-function move(object, direction) {
-  var amount = 5;
+function moveObject(object, direction, world, amount) {
+  amount = amount || moveAmount(object, direction, world);
   switch(direction) {
     case NORTH:
       object.y -= amount;
@@ -92,21 +138,144 @@ function move(object, direction) {
       break;
     case WEST:
       object.x -= amount;
+      break;
   }
 }
 
 
 //===----------------------------------------------------------------------===//
+// World.doCollisions
+//===----------------------------------------------------------------------===//
+World.prototype.doCollisions = function() {
+  collisionPush(this, this.player);
+};
+
+//===----------------------------------------------------------------------===//
+// oppositeDirection
+//===----------------------------------------------------------------------===//
+function oppositeDirection(direction) {
+  switch(direction) {
+    case NORTH: return SOUTH;
+    case SOUTH: return NORTH;
+    case EAST: return WEST;
+    case WEST: return EAST;
+  }
+}
+
+
+//===----------------------------------------------------------------------===//
+// moveAmount
+//   determines how far an object should move
+//===----------------------------------------------------------------------===//
+function moveAmount(object, direction, world) {
+  // handle slowed tile effects, etc
+  return DEFAULT_MOVE;
+}
+
+function pushDirection(world, object, tileCoord) {
+  var tileCx = (tileCoord.x * world.tile_size) + (world.tile_size / 2);
+  var tileCy = (tileCoord.y * world.tile_size) + (world.tile_size / 2);
+  
+  var dx = tileCx - object.center_x();
+  var dy = tileCy - object.center_y();
+
+  var pushHoriz = Math.abs(dx) >= Math.abs(dy);
+
+  if (pushHoriz) {
+    return dx >= 0 ? WEST : EAST;
+  } else {
+    return dy >= 0 ? NORTH : SOUTH;
+  }
+
+}
+
+//===----------------------------------------------------------------------===//
+// collidesWithWorld
+//   determines if a point is inside of a collision bounding box
+//   object constraints: top(), left(), bottom(), right()
+//===----------------------------------------------------------------------===//
+function collisionPush(world, object) {
+  var push;
+  var collided = false;
+
+  function testPoint(x, y) {
+    var tileCoord = world.getTileCoord(x, y);
+    var tile = world.getTile(tileCoord.x, tileCoord.y);
+    var collided = !!tile.clip;
+
+    if (collided) {
+      var direction = pushDirection(world, object, tileCoord);
+      switch(direction) {
+        case EAST:
+          move = ((tileCoord.x + 1) * world.tile_size) - x;
+          break;
+        case WEST:
+          move = x - (tileCoord.x * world.tile_size);
+          break;
+        case SOUTH:
+          move = ((tileCoord.y + 1) * world.tile_size) - y;
+          break;
+        case NORTH:
+          move = y - (tileCoord.y * world.tile_size);
+          break;
+      }
+
+      moveObject(object, direction, world, move);
+      return collided;
+    }
+  }
+
+  testPoint(object.left(), object.top()); // top left
+  testPoint(object.right(), object.top()); // top right
+  testPoint(object.left(), object.bottom()); // bottom left
+  testPoint(object.right(), object.bottom()); // bottom right
+
+  return 0;
+}
+
+//===----------------------------------------------------------------------===//
+// World.getTileCoord
+//===----------------------------------------------------------------------===//
+World.prototype.getTileCoord = function(x, y) {
+  x %= this.width;
+  y %= this.height;
+
+  x /= this.tile_size;
+  y /= this.tile_size;
+
+  x = Math.floor(x);
+  y = Math.floor(y);
+
+  return {x: x, y: y};
+};
+
+//===----------------------------------------------------------------------===//
+// World.getTile
+//===----------------------------------------------------------------------===//
+World.prototype.getTileFromPoint = function(x, y) {
+  var tilePoint = this.getTileCoord(x, y);
+  return this.getTile(tilePoint.x, tilePoint.y);
+};
+
+
+World.prototype.getTile = function(x, y) {
+  return TILES[this.map[y][x]];
+};
+
+
+//===----------------------------------------------------------------------===//
 // createPlayer
 //===----------------------------------------------------------------------===//
-function createPlayer() {
-  var ent = new Entity();
+function createPlayer(entity) {
+  var ent = entity || new Entity();
+  ent.w = 16;
+  ent.h = 16;
   ent.update = function(world) {
     var keys = world.input.keyboard;
-    if (keys.up) move(ent, NORTH);
-    if (keys.left) move(ent, WEST);
-    if (keys.right) move(ent, EAST);
-    if (keys.down) move(ent, SOUTH);
+    if (keys.up) moveObject(ent, NORTH, world);
+    if (keys.left) moveObject(ent, WEST, world);
+    if (keys.right) moveObject(ent, EAST, world);
+    if (keys.down) moveObject(ent, SOUTH, world);
   }
   return ent;
 }
@@ -122,6 +291,25 @@ function drawLine(ctx, x1, y1, x2, y2) {
   ctx.moveTo(x1 + .5, y1 + .5);
   ctx.lineTo(x2 + .5, y2 + .5);
   ctx.stroke();
+}
+
+
+//===----------------------------------------------------------------------===//
+// drawCircle
+//===----------------------------------------------------------------------===//
+function drawCircle(ctx, x, y, r) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI*2, true);
+  ctx.stroke();
+}
+
+
+//===----------------------------------------------------------------------===//
+// drawDebugPoint
+//===----------------------------------------------------------------------===//
+function drawDebugPoint(object, ctx) {
+  ctx.strokeStyle = 'red';
+  drawCircle(ctx, object.x, object.y, 2);
 }
 
 
@@ -219,6 +407,9 @@ World.prototype.update = function() {
   for (var i = 0; i < this.entities.length; i++) {
     this.entities[i].update(this);
   };
+
+  // do collisions
+  this.doCollisions();
 };
 
 
@@ -230,6 +421,7 @@ World.prototype.draw = function() {
   this.drawTiles();
   this.drawGrid();
   this.drawEntities();
+  drawDebugPoint(this.player, this.ctx);
 }
 
 
@@ -237,7 +429,7 @@ World.prototype.draw = function() {
 // World.preload
 //===----------------------------------------------------------------------===//
 World.prototype.preload = function(done) {
-  var list = tiles.concat(objects);
+  var list = TILES.concat(OBJECTS);
   var len = list.length;
   var self = this;
   this.c = 0;
@@ -256,12 +448,16 @@ World.prototype.preload = function(done) {
 };
 
 
+//===----------------------------------------------------------------------===//
+// World.drawEntities
+//===----------------------------------------------------------------------===//
 World.prototype.drawEntities = function() {
   this.player.draw(this);
   for (var i = 0; i < this.entities.length; i++) {
     this.entities[i].draw(this);
   };
 };
+
 
 //===----------------------------------------------------------------------===//
 // World.drawGrid
@@ -297,7 +493,7 @@ World.prototype.drawTiles = function () {
   for (var x = 0; x < this.tile_width; ++x) {
     for (var y = 0; y < this.tile_height; ++y) {
       var tile_type = this.map[y][x];
-      var img = tiles[tile_type].img;
+      var img = TILES[tile_type].img;
       this.ctx.drawImage(img, x * this.tile_size, y * this.tile_size);
     }
   }
