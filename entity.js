@@ -9,6 +9,7 @@ function Entity() {
   this.img = 0;
 }
 
+
 //===----------------------------------------------------------------------===//
 // Entity.bottom
 //===----------------------------------------------------------------------===//
@@ -83,6 +84,7 @@ Entity.prototype.drawSprite = function(ctx) {
 //===----------------------------------------------------------------------===//
 function createPlayer(entity) {
   var ent = entity || new Entity();
+  ent.animated = true;
   ent.w = 16;
   ent.h = 16;
   ent.update = function(world) {
