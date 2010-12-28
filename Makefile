@@ -1,4 +1,4 @@
-PROJECT=titan
+PROJECT=titania
 COMPRESSOR=closure --compilation_level ADVANCED_OPTIMIZATIONS
 
 SRCS= data.js \
@@ -15,8 +15,8 @@ release: $(PROJECT)_release.js
 
 $(PROJECT)_debug.js: $(SRCS)
 	cat $^ > $@
-	ln -sf $@ titan.js
+	ln -sf $@ $(PROJECT).js
 
 $(PROJECT)_release.js: $(PROJECT)_debug.js
 	$(COMPRESSOR) < $< > $@
-	ln -sf $@ titan.js
+	ln -sf $@ $(PROJECT).js
