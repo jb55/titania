@@ -3,8 +3,8 @@
 // World
 //===----------------------------------------------------------------------===//
 function World(elem) {
-  this.width = 1280;
-  this.height = 720;
+  this.width = 640;
+  this.height = 480;
   this.tile_size = 32;
   this.tile_width = this.width / this.tile_size;
   this.tile_height = this.height / this.tile_size;
@@ -111,7 +111,7 @@ World.prototype.update = function() {
 World.prototype.draw = function() {
   this.clear();
   this.drawTiles();
-  this.drawGrid();
+  //this.drawGrid();
   this.drawEntities();
   drawDebugPoint(this.player, this.ctx);
 }

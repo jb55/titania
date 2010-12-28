@@ -4,9 +4,27 @@
 	<meta charset="UTF-8"/>
 	<title>Titania</title>
   <script type="text/javascript" src="titania.js"></script>
+  <style type="text/css">
+    body {
+      background-color: #222;
+    }
+
+    #container {
+      text-align: center;
+      margin: auto;
+      margin-top: 80px;
+      width: 900px;
+    }
+
+    #game {
+      border: 4px solid black;
+    }
+  </style>
 </head>
 <body>
-    <canvas width="1280" height="720" id="game"></canvas>
+  <div id="container">
+    <canvas width="640" height="480" id="game"></canvas>
+  </div>
   <script type="text/javascript">
     (function() {
       var world = new World("game");
