@@ -13,21 +13,30 @@
       text-align: center;
       margin: auto;
       margin-top: 80px;
-      width: 900px;
+      width: 1000px;
     }
 
-    #game {
-      border: 4px solid black;
+    .layer {
+      position: absolute;
+      width: 1000;
+      height: 900;
+    }
+
+    #layer2 {
+      z-index: 1;
+    }
+
+    #layer1 {
+      z-index: 0;
     }
   </style>
 </head>
 <body>
-  <div id="container">
-    <canvas width="640" height="480" id="game"></canvas>
-  </div>
+    <canvas class="layer" id="layer2"></canvas>
+    <canvas class="layer" id="layer1"></canvas>
   <script type="text/javascript">
     (function() {
-      var world = new World("game");
+      var world = new World(["layer1", "layer2"]);
     })();
   </script>
 </body>

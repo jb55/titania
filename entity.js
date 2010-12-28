@@ -65,8 +65,8 @@ Entity.prototype.update = function() {
 //===----------------------------------------------------------------------===//
 // Entity.draw
 //===----------------------------------------------------------------------===//
-Entity.prototype.draw = function(world) {
-  this.drawSprite(world.ctx);
+Entity.prototype.draw = function(world, layer) {
+  this.drawSprite(layer);
 };
 
 

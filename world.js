@@ -2,24 +2,37 @@
 //===----------------------------------------------------------------------===//
 // World
 //===----------------------------------------------------------------------===//
-function World(elem) {
-  this.width = 640;
+function World(layerElems) {
+  this.width = 1000;
   this.height = 480;
   this.tile_size = 32;
-  this.tile_width = this.width / this.tile_size;
-  this.tile_height = this.height / this.tile_size;
+  this.tile_width = (this.width * 0.5) / this.tile_size;
+  this.tile_height = (this.height * 0.75) / this.tile_size;
   this.player = createPlayer();
   this.entities = [];
   this.input = new Input();
+  this.layers = [];
   this.firstDraw = true;
 
-  var isElem = elem instanceof Element;
-  this.canvas = isElem ? elem : document.getElementById(elem);
-  this.ctx = this.canvas.getContext('2d');
+  for (var i = 0; i < layerElems.length; i++) {
+    var canvas = document.getElementById(layerElems[i]);
+    canvas.width = this.width;
+    canvas.height = this.height;
+    var ctx = canvas.getContext('2d');
+    this.layers.push(ctx);
+  };
 
-  this.ctx.setTransform(1.5, 0, 0, 0.75, 0, 0);
-  this.ctx.rotate((Math.PI/180) * 45);
-  this.ctx.translate(100, -100);
+  this.tileLayer = this.layers[0];
+  this.entLayer = this.layers[1];
+
+  function setTransforms(layer) {
+    layer.setTransform(1.5, 0, 0, 0.75, 0, 0);
+    layer.rotate((Math.PI/180) * 45);
+    layer.translate(200, -200);
+  }
+
+  setTransforms(this.tileLayer);
+  setTransforms(this.entLayer);
 
   // TEST
   initTestWorld(this);
@@ -27,9 +40,8 @@ function World(elem) {
   var self = this;
   this.preload(function() {
     self.ticker = new Ticker(24, function() {
-      var redrawTiles = self.getRedrawTiles() || [];
       self.update();
-      self.draw(redrawTiles);
+      self.draw();
     });
     self.ticker.run();
   });
@@ -132,13 +144,15 @@ function pushCoordSet(coord, set) {
 //===----------------------------------------------------------------------===//
 // World.clear
 //===----------------------------------------------------------------------===//
-World.prototype.clear = function(redrawTiles) {
-  for (var i = 0; i < redrawTiles.length; i++) {
-    var x = redrawTiles[i].x;
-    var y = redrawTiles[i].y;
-    this.ctx.clearRect(x * this.tile_size, y * this.tile_size, this.tile_size, 
-                       this.tile_size);
-  };
+World.prototype.clear = function(ctx) {
+  ctx.clearRect(0, 0, this.width, this.height);
+
+//for (var i = 0; i < redrawTiles.length; i++) {
+//  var x = redrawTiles[i].x;
+//  var y = redrawTiles[i].y;
+//  ctx.clearRect(x * this.tile_size, y * this.tile_size, this.tile_size, 
+//                     this.tile_size);
+//};
 }
 
 
@@ -159,12 +173,16 @@ World.prototype.update = function() {
 //===----------------------------------------------------------------------===//
 // World.draw
 //===----------------------------------------------------------------------===//
-World.prototype.draw = function(redrawTiles) {
-  this.clear(redrawTiles);
-  this.drawTiles(redrawTiles);
+World.prototype.draw = function() {
+  if (this.firstDraw) {
+    this.clear(this.tileLayer);
+    this.drawTiles(this.tileLayer);
+  }
   //this.drawGrid();
-  this.drawEntities();
+  this.clear(this.entLayer);
+  this.drawEntities(this.entLayer);
   //drawDebugPoint(this.player, this.ctx);
+  this.firstDraw = false;
 }
 
 
@@ -194,10 +212,10 @@ World.prototype.preload = function(done) {
 //===----------------------------------------------------------------------===//
 // World.drawEntities
 //===----------------------------------------------------------------------===//
-World.prototype.drawEntities = function() {
-  this.player.draw(this);
+World.prototype.drawEntities = function(layer) {
+  this.player.draw(this, layer);
   for (var i = 0; i < this.entities.length; i++) {
-    this.entities[i].draw(this);
+    this.entities[i].draw(this, layer);
   };
 };
 
@@ -205,26 +223,26 @@ World.prototype.drawEntities = function() {
 //===----------------------------------------------------------------------===//
 // World.drawGrid
 //===----------------------------------------------------------------------===//
-World.prototype.drawGrid = function() {
-  this.ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+World.prototype.drawGrid = function(layer) {
+  layer.strokeStyle = "rgba(0, 0, 0, 0.25)";
 
   // draw vertical lines
   for (var i = 1; i < this.tile_width; ++i) {
     var x = i * this.tile_size;
-    drawLine(this.ctx, x, 0, x, this.height);
+    drawLine(layer, x, 0, x, this.height);
   }
 
   // draw horizontal lines
   for (var i = 1; i < this.tile_width; ++i) {
     var y = i * this.tile_size;
-    drawLine(this.ctx, 0, y, this.width, y);
+    drawLine(layer, 0, y, this.width, y);
   }
 
   // border
-  drawLine(this.ctx, 0, 0, 0, this.height); // left
-  drawLine(this.ctx, 0, 0, this.width, 0); // top
-  drawLine(this.ctx, this.width-1, 0, this.width-1, this.height-1); // right
-  drawLine(this.ctx, 0, this.height-1, this.width-1, this.height-1); // bottom
+  drawLine(layer, 0, 0, 0, this.height); // left
+  drawLine(layer, 0, 0, this.width, 0); // top
+  drawLine(layer, this.width-1, 0, this.width-1, this.height-1); // right
+  drawLine(layer, 0, this.height-1, this.width-1, this.height-1); // bottom
 }
 
 
@@ -232,27 +250,12 @@ World.prototype.drawGrid = function() {
 //===----------------------------------------------------------------------===//
 // World.drawTiles
 //===----------------------------------------------------------------------===//
-World.prototype.drawTiles = function (redrawTiles) {
-
-  var self = this;
-  function drawImg(x, y) {
-    var img = self.getTile(x, y).img;
-    self.ctx.drawImage(img, x * self.tile_size, y * self.tile_size);
-  }
-
-  if (!this.firstDraw) {
-    for (var i = 0; i < redrawTiles.length; i++) {
-      var x = redrawTiles[i].x;
-      var y = redrawTiles[i].y;
-      drawImg(x, y);
-    }
-  } else {
+World.prototype.drawTiles = function (ctx) {
+  for (var y = 0; y < this.tile_height; y++) {
     for (var x = 0; x < this.tile_width; x++) {
-      for (var y = 0; y < this.tile_height; y++) {
-        drawImg(x, y);
-      }
+      var img = this.getTile(x, y).img;
+      ctx.drawImage(img, x * this.tile_size, y * this.tile_size);
     }
-    this.firstDraw = false;
   }
 }
 
