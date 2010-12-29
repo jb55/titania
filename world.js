@@ -3,11 +3,11 @@
 // World
 //===----------------------------------------------------------------------===//
 function World(layerElems) {
-  this.width = 1000;
+  this.width = 640;
   this.height = 480;
   this.tile_size = 32;
-  this.tile_width = (this.width * 0.5) / this.tile_size;
-  this.tile_height = (this.height * 0.75) / this.tile_size;
+  this.tile_width = this.width / this.tile_size;
+  this.tile_height = this.height / this.tile_size;
   this.player = createPlayer();
   this.entities = [];
   this.input = new Input();
@@ -16,23 +16,14 @@ function World(layerElems) {
 
   for (var i = 0; i < layerElems.length; i++) {
     var canvas = document.getElementById(layerElems[i]);
-    canvas.width = this.width;
-    canvas.height = this.height;
+    canvas.width = this.width * 2;
+    canvas.height = this.height * 2;
     var ctx = canvas.getContext('2d');
     this.layers.push(ctx);
   };
 
   this.tileLayer = this.layers[0];
   this.entLayer = this.layers[1];
-
-  function setTransforms(layer) {
-    layer.setTransform(1.5, 0, 0, 0.75, 0, 0);
-    layer.rotate((Math.PI/180) * 45);
-    layer.translate(200, -200);
-  }
-
-  setTransforms(this.tileLayer);
-  setTransforms(this.entLayer);
 
   // TEST
   initTestWorld(this);
@@ -175,7 +166,28 @@ World.prototype.update = function() {
 //===----------------------------------------------------------------------===//
 World.prototype.draw = function() {
   if (this.firstDraw) {
+    function setTransforms(layer) {
+      // isometric
+      // rotate 45 degrees, scale y by 1.5 and x by 0.75
+      layer.setTransform(1.0606, 0.53032, -1.0606, 0.53032, 0, 0);
+      layer.translate(300, -230);
+    }
+
     this.clear(this.tileLayer);
+
+    this.tileLayer.setTransform(-1, 0.5, 0, 1, 0, 0);
+    this.tileLayer.translate(-600, 340);
+    this.tileLayer.scale(1.06, 1.06);
+    this.drawTiles(this.tileLayer, /* side images */ true, /*inv*/ true);
+
+    this.tileLayer.setTransform(1, 0.5, 0, 1, 0, 0);
+    this.tileLayer.translate(562, -245);
+    this.tileLayer.scale(1.06, 1.06);
+    this.drawTiles(this.tileLayer, /* side images */ true);
+
+    setTransforms(this.tileLayer);
+    setTransforms(this.entLayer);
+
     this.drawTiles(this.tileLayer);
   }
   //this.drawGrid();
@@ -190,22 +202,43 @@ World.prototype.draw = function() {
 // World.preload
 //===----------------------------------------------------------------------===//
 World.prototype.preload = function(done) {
-  var list = TILES.concat(OBJECTS);
-  var len = list.length;
   var self = this;
   this.c = 0;
+  var len = TILES.length + OBJECTS.length;
 
-  for (var i = 0; i < len; i++) {
-    var entity = list[i];
-    entity.img = new Image();
-    entity.img.onload = function() {
-      self.c += 1;
-      if (self.c == len) {
-        done();
-      }
+  function entOnLoad() {
+    self.c += 1;
+    if (self.c == len) {
+      done();
     }
+  }
+
+  function doEnt(entity) {
+    if (entity.transparent) {
+      entOnLoad();
+      return;
+    }
+    entity.img = new Image();
+    entity.img.onload = entOnLoad;
     entity.img.src = "img/" + entity.name + '.png';
+    if (entity.side) {
+      len += 1;
+      entity.side_img = new Image();
+      entity.side_img.onload = entOnLoad;
+      entity.side_img.src = 'img/' + entity.name + '_side' + '.png';
+    }
+  }
+
+  // Tiles
+  for (var i = 0; i < TILES.length; i++) {
+    doEnt(TILES[i]);
   };
+
+  // Objects
+  for (var i = 0; i < OBJECTS.length; i++) {
+    doEnt(OBJECTS[i]);
+  };
+
 };
 
 
@@ -250,16 +283,28 @@ World.prototype.drawGrid = function(layer) {
 //===----------------------------------------------------------------------===//
 // World.drawTiles
 //===----------------------------------------------------------------------===//
-World.prototype.drawTiles = function (ctx) {
+World.prototype.drawTiles = function (ctx, side, inv) {
+
   for (var y = 0; y < this.tile_height; y++) {
-    for (var x = 0; x < this.tile_width; x++) {
-      var img = this.getTile(x, y).img;
-      ctx.drawImage(img, x * this.tile_size, y * this.tile_size);
+
+    if (side) {
+      if (inv) {
+        ctx.translate(this.tile_size, 0);
+      } else {
+        ctx.translate(-this.tile_size, this.tile_size);
+      }
     }
+
+    if (inv) ctx.save();
+    for (var x = 0; x < this.tile_width; x++) {
+      if (inv) ctx.translate(2*-this.tile_size, this.tile_size);
+      var tile = this.getTile(x, y);
+      var img = side ? tile.side_img || tile.img : tile.img;
+      var j = side ? 0 : 1;
+
+      ctx.drawImage(img, x * this.tile_size, y * this.tile_size * j);
+    }
+    if (inv) ctx.restore();
   }
-}
 
-
-function trace(msg) {
-  console.log("***", msg);
 }
