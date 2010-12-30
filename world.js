@@ -2,12 +2,13 @@
 //===----------------------------------------------------------------------===//
 // World
 //===----------------------------------------------------------------------===//
-function World(elem) {
+function World(elem, vshader, fshader) {
   this.width = 800;
   this.height = 600;
-  this.tile_size = 32;
-  this.tile_width = this.width / this.tile_size;
-  this.tile_height = this.height / this.tile_size;
+  this.block_size = 32;
+  this.block_width = this.width / this.block_size;
+  this.block_height = this.height / this.block_size;
+  this.block_depth = 4;
   this.player = createPlayer();
   this.entities = [];
   this.input = new Input();
@@ -16,16 +17,24 @@ function World(elem) {
   canvas.width = this.width;
   canvas.height = this.height;
 
-  this.gl = initWebGL(canvas,
-    [0, 0, 0, 1.0], // clear color
-    10000 // depth
+  var gl = this.gl = initWebGL(canvas,
+    vshader, 
+    fshader,
+    [ "vNormal", "vColor", "vPosition"],
+    [0.1, 0.1, 0.1, 1], // clear color
+    10000, // depth
+    true //debug
   );
 
-  if (!this.gl) {
+  if (!gl) {
     // couldn't load WebGL
     console.log('Error loading WebGL');
     return;
   }
+
+  this.grassTexture = loadImageTexture(gl, "img/grass.png");
+  this.box = makeBox(gl);
+  this.setupRenderer(gl);
 
   // TEST
   initTestWorld(this);
@@ -34,7 +43,7 @@ function World(elem) {
   this.preload(this.gl, function() {
     (function loop() {
       WebGLUtils.requestAnimationFrame(canvas, loop);
-      self.update();
+      //self.update();
       self.draw();
     })();
   });
@@ -46,7 +55,9 @@ function World(elem) {
 // initTestWorld
 //===----------------------------------------------------------------------===//
 function initTestWorld(world) {
+  var gl = world.gl;
   world.map = test_map;
+  world.block_depth = 2;
 }
 
 //===----------------------------------------------------------------------===//
@@ -58,14 +69,14 @@ World.prototype.doCollisions = function() {
 
 
 //===----------------------------------------------------------------------===//
-// World.getTileCoord
+// World.getBlockCoord
 //===----------------------------------------------------------------------===//
-World.prototype.getTileCoord = function(x, y) {
+World.prototype.getBlockCoord = function(x, y) {
   x %= this.width;
   y %= this.height;
 
-  x /= this.tile_size;
-  y /= this.tile_size;
+  x /= this.block_size;
+  y /= this.block_size;
 
   x = Math.floor(x);
   y = Math.floor(y);
@@ -75,24 +86,25 @@ World.prototype.getTileCoord = function(x, y) {
 
 
 //===----------------------------------------------------------------------===//
-// World.getTileFromPoint
+// World.getBlockFromPoint
 //===----------------------------------------------------------------------===//
-World.prototype.getTileFromPoint = function(x, y) {
-  var tilePoint = this.getTileCoord(x, y);
-  return this.getTile(tilePoint.x, tilePoint.y);
+World.prototype.getBlockFromPoint = function(x, y) {
+  var blockPoint = this.getBlockCoord(x, y);
+  return this.getBlock(blockPoint.x, blockPoint.y);
 };
 
 
 //===----------------------------------------------------------------------===//
-// World.getTile
+// World.getBlock
 //===----------------------------------------------------------------------===//
-World.prototype.getTile = function(x, y) {
-  var row = this.map[y];
+World.prototype.getBlock = function(x, y, z) {
+  var slice = this.map[z];
+  var row = slice[y];
 
   if (!row)
-    return TILES[0];
+    return BLOCKS[0];
 
-  return TILES[row[x]] || TILES[0];
+  return BLOCKS[row[x]] || BLOCKS[0];
 };
 
 
@@ -100,7 +112,7 @@ World.prototype.getTile = function(x, y) {
 // World.clear
 //===----------------------------------------------------------------------===//
 World.prototype.clear = function(gl) {
-  gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BUT);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
 
@@ -114,7 +126,7 @@ World.prototype.update = function() {
   };
 
   // do collisions
-  this.doCollisions();
+  //this.doCollisions();
 };
 
 
@@ -122,9 +134,20 @@ World.prototype.update = function() {
 // World.draw
 //===----------------------------------------------------------------------===//
 World.prototype.draw = function() {
-  this.clear(this.gl);
-  this.drawTiles();
-  this.drawEntities();
+  var gl = this.gl;
+
+  // Clear the canvas
+  this.clear(gl);
+
+  this.drawBlocks(gl);
+
+  // Finish up.
+  gl.flush();
+
+//this.clear(this.gl);
+//this.drawBlocks(this.gl);
+//this.drawEntities();
+//this.gl.flush();
 }
 
 
@@ -138,7 +161,7 @@ World.prototype.preload = function(gl, done) {
 
   function onLoadAsset(asset) {
     // generate texture
-    var texture = generateTexture(gl, asset.img);
+    var texture = generateTexture(gl, asset.img, texture);
     asset.texture = texture;
 
     self.c += 1;
@@ -172,9 +195,9 @@ World.prototype.preload = function(gl, done) {
 
   }
 
-  // Tiles
-  for (var i = 0; i < TILES.length; i++) {
-    doEnt(TILES[i]);
+  // Blocks
+  for (var i = 0; i < BLOCKS.length; i++) {
+    doEnt(BLOCKS[i]);
   };
 
   // Objects
@@ -201,14 +224,14 @@ World.prototype.drawEntities = function(layer) {
 //===----------------------------------------------------------------------===//
 World.prototype.drawGrid = function(ctx) {
   // draw vertical lines
-  for (var i = 1; i < this.tile_width; ++i) {
-    var x = i * this.tile_size;
+  for (var i = 1; i < this.block_width; ++i) {
+    var x = i * this.block_size;
     drawLine(ctx, x, 0, x, this.height);
   }
 
   // draw horizontal lines
-  for (var i = 1; i < this.tile_width; ++i) {
-    var y = i * this.tile_size;
+  for (var i = 1; i < this.block_width; ++i) {
+    var y = i * this.block_size;
     drawLine(ctx, 0, y, this.width, y);
   }
 
@@ -220,9 +243,113 @@ World.prototype.drawGrid = function(ctx) {
 }
 
 
+function calculateProjection(gl) {
+  gl.mvpMatrix.load(gl.projectionMatrix);
+  gl.mvpMatrix.multiply(gl.mvMatrix);
+  gl.mvpMatrix.setUniform(gl, gl.u_mvpMatrixLoc, false);
+  return gl.mvpMatrix;
+}
+
+function setProjection(gl, m) {
+  gl.mvpMatrix.load(m);
+  gl.mvpMatrix.setUniform(gl, gl.u_mvpMatrixLoc, false);
+}
+
+function setNormals(gl, m) {
+  gl.normalMatrix.load(m);
+  gl.normalMatrix.setUniform(gl, gl.u_normalMatrixLoc, false);
+}
+
+function calculateNormals(gl) {
+  gl.normalMatrix.load(gl.mvMatrix);
+  gl.normalMatrix.invert();
+  gl.normalMatrix.transpose();
+  gl.normalMatrix.setUniform(gl, gl.u_normalMatrixLoc, false);
+  return gl.normalMatrix;
+}
+
 
 //===----------------------------------------------------------------------===//
-// World.drawTiles
+// World.drawBlocks
 //===----------------------------------------------------------------------===//
-World.prototype.drawTiles = function (ctx, side, inv) {
+World.prototype.drawBlocks = function(gl) {
+
+  for (var z = 0; z < this.block_depth; z++) {
+    for (var y = 0; y < this.block_height; y++) {
+      for (var x = 0; x < this.block_width; x++) {
+        var block = this.getBlock(x, y, z);
+        if (block.transparent)
+          continue;
+
+        // Make a model/view matrix.
+        gl.mvMatrix.makeIdentity();
+        gl.mvMatrix.translate(x*2, y*2, z*2);
+
+        // Construct the normal matrix from the model-view matrix and pass it
+        // in
+        gl.normalMatrix.load(gl.mvMatrix);
+        gl.normalMatrix.invert();
+        gl.normalMatrix.transpose();
+        gl.normalMatrix.setUniform(gl, gl.u_normalMatrixLoc, false);
+
+        // Construct the model-view * projection matrix and pass it in
+        gl.mvpMatrix.load(gl.projectionMatrix);
+        gl.mvpMatrix.multiply(gl.mvMatrix);
+        gl.mvpMatrix.setUniform(gl, gl.u_modelViewProjMatrixLoc, false);
+
+        gl.bindTexture(gl.TEXTURE_2D, block.assets[0].texture);
+
+        // Draw the cube
+        gl.drawElements(gl.TRIANGLES, this.box.numIndices, gl.UNSIGNED_BYTE, 0);
+
+      }
+    }
+  }
 }
+
+
+//===----------------------------------------------------------------------===//
+// setupRenderer
+//===----------------------------------------------------------------------===//
+World.prototype.setupRenderer = function(gl) {
+  // Set some uniform variables for the shaders
+  gl.uniform3f(gl.getUniformLocation(gl.program, "lightDir"), 0, 1, 0.8);
+  gl.uniform1i(gl.getUniformLocation(gl.program, "sampler2d"), 0);
+
+  gl.enable(gl.TEXTURE_2D);
+
+  var scale = 0.05;
+  gl.viewport(0, 0, this.width, this.height);
+  //gl.projectionMatrix = orthoMatrix();
+  //gl.projectionMatrix.multiply(isometricMatrix());
+  gl.projectionMatrix = isometricMatrix();
+  gl.projectionMatrix.rotate(-90, 1, 0, 0);
+  gl.projectionMatrix.translate(-1, 0, 0);
+  gl.projectionMatrix.scale(scale, scale, scale);
+
+  // Matrices!
+  gl.mvMatrix = new Matrix4();
+  gl.u_normalMatrixLoc = gl.getUniformLocation(gl.program, "u_normalMatrix");
+  gl.normalMatrix = new Matrix4();
+  gl.u_modelViewProjMatrixLoc =
+          gl.getUniformLocation(gl.program, "u_modelViewProjMatrix");
+  gl.mvpMatrix = new Matrix4();
+
+  // Enable all of the vertex attribute arrays.
+  gl.enableVertexAttribArray(0);
+  gl.enableVertexAttribArray(1);
+  gl.enableVertexAttribArray(2);
+
+  // Set up all the vertex attributes for vertices, normals and texCoords
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.box.vertexBuffer);
+  gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 0, 0);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.box.normalBuffer);
+  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.box.texCoordBuffer);
+  gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
+
+  // Bind the index array
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.box.indexBuffer);
+};

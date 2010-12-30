@@ -40,7 +40,7 @@ function oppositeDirection(direction) {
 //   determines how far an object should move
 //===----------------------------------------------------------------------===//
 function moveAmount(object, direction, world) {
-  // handle slowed tile effects, etc
+  // handle slowed block effects, etc
   return DEFAULT_MOVE;
 }
 
@@ -48,12 +48,12 @@ function moveAmount(object, direction, world) {
 //===----------------------------------------------------------------------===//
 // pushDirection
 //===----------------------------------------------------------------------===//
-function pushDirection(world, object, tileCoord) {
-  var tileCx = (tileCoord.x * world.tile_size) + (world.tile_size / 2);
-  var tileCy = (tileCoord.y * world.tile_size) + (world.tile_size / 2);
+function pushDirection(world, object, blockCoord) {
+  var blockCx = (blockCoord.x * world.block_size) + (world.block_size / 2);
+  var blockCy = (blockCoord.y * world.block_size) + (world.block_size / 2);
   
-  var dx = tileCx - object.center_x();
-  var dy = tileCy - object.center_y();
+  var dx = blockCx - object.center_x();
+  var dy = blockCy - object.center_y();
 
   var pushHoriz = Math.abs(dx) >= Math.abs(dy);
 
@@ -75,24 +75,24 @@ function collisionPush(world, object) {
   var collided = false;
 
   function testPoint(x, y) {
-    var tileCoord = world.getTileCoord(x, y);
-    var tile = world.getTile(tileCoord.x, tileCoord.y);
-    var collided = !!tile.clip;
+    var blockCoord = world.getBlockCoord(x, y);
+    var block = world.getBlock(blockCoord.x, blockCoord.y);
+    var collided = !!block.clip;
 
     if (collided) {
-      var direction = pushDirection(world, object, tileCoord);
+      var direction = pushDirection(world, object, blockCoord);
       switch(direction) {
         case EAST:
-          move = ((tileCoord.x + 1) * world.tile_size) - x;
+          move = ((blockCoord.x + 1) * world.block_size) - x;
           break;
         case WEST:
-          move = x - (tileCoord.x * world.tile_size) - 2;
+          move = x - (blockCoord.x * world.block_size) - 2;
           break;
         case SOUTH:
-          move = ((tileCoord.y + 1) * world.tile_size) - y;
+          move = ((blockCoord.y + 1) * world.block_size) - y;
           break;
         case NORTH:
-          move = y - (tileCoord.y * world.tile_size) - 2;
+          move = y - (blockCoord.y * world.block_size) - 2;
           break;
       }
 

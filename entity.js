@@ -75,7 +75,7 @@ Entity.prototype.draw = function(world, layer) {
 //===----------------------------------------------------------------------===//
 Entity.prototype.drawSprite = function(ctx) {
   var img = OBJECTS[this.img].img;
-  ctx.drawImage(img, this.x, this.y);
+  //ctx.drawImage(img, this.x, this.y);
 };
 
 
