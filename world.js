@@ -2,41 +2,45 @@
 //===----------------------------------------------------------------------===//
 // World
 //===----------------------------------------------------------------------===//
-function World(layerElems) {
-  this.width = 640;
-  this.height = 480;
+function World(elem) {
+  this.width = 800;
+  this.height = 600;
   this.tile_size = 32;
   this.tile_width = this.width / this.tile_size;
   this.tile_height = this.height / this.tile_size;
   this.player = createPlayer();
   this.entities = [];
   this.input = new Input();
-  this.layers = [];
-  this.firstDraw = true;
 
-  for (var i = 0; i < layerElems.length; i++) {
-    var canvas = document.getElementById(layerElems[i]);
-    canvas.width = this.width * 2;
-    canvas.height = this.height * 2;
-    var ctx = canvas.getContext('2d');
-    this.layers.push(ctx);
-  };
+  var canvas = document.getElementById(elem);
+  canvas.width = this.width;
+  canvas.height = this.height;
 
-  this.tileLayer = this.layers[0];
-  this.entLayer = this.layers[1];
+  this.gl = initWebGL(canvas,
+    [0, 0, 0, 1.0], // clear color
+    10000 // depth
+  );
+
+  if (!this.gl) {
+    // couldn't load WebGL
+    console.log('Error loading WebGL');
+    return;
+  }
 
   // TEST
   initTestWorld(this);
 
   var self = this;
-  this.preload(function() {
-    self.ticker = new Ticker(24, function() {
+  this.preload(this.gl, function() {
+    (function loop() {
+      WebGLUtils.requestAnimationFrame(canvas, loop);
       self.update();
       self.draw();
-    });
-    self.ticker.run();
+    })();
   });
 }
+
+
 
 //===----------------------------------------------------------------------===//
 // initTestWorld
@@ -93,57 +97,10 @@ World.prototype.getTile = function(x, y) {
 
 
 //===----------------------------------------------------------------------===//
-// World.getRedrawTiles
-//===----------------------------------------------------------------------===//
-World.prototype.getRedrawTiles = function() {
-  var coords = [];
-  var self = this;
-
-  function doEnt(ent) {
-    if (!ent.animated) return;
-    pushCoordSet(self.getTileCoord(ent.left(), ent.top()), coords);
-    pushCoordSet(self.getTileCoord(ent.left(), ent.bottom()), coords);
-    pushCoordSet(self.getTileCoord(ent.right(), ent.top()), coords);
-    pushCoordSet(self.getTileCoord(ent.right(), ent.bottom()), coords);
-    pushCoordSet(self.getTileCoord(ent.center_x(), ent.center_y()), coords);
-  }
-
-  // do player
-  doEnt(this.player);
-
-  for (var i = 0; i < this.entities.length; i++) {
-    doEnt(this.entities[i]);
-  };
-
-  return coords;
-};
-
-
-//===----------------------------------------------------------------------===//
-// pushCoordSet
-//===----------------------------------------------------------------------===//
-function pushCoordSet(coord, set) {
-  for (var i = 0; i < set.length; i++) {
-    var setCoord = set[i];
-    if (coord.x == setCoord.x && coord.y == setCoord.y)
-      return;
-  };
-  set.push(coord);
-}
-
-
-//===----------------------------------------------------------------------===//
 // World.clear
 //===----------------------------------------------------------------------===//
-World.prototype.clear = function(ctx) {
-  ctx.clearRect(0, 0, this.width, this.height);
-
-//for (var i = 0; i < redrawTiles.length; i++) {
-//  var x = redrawTiles[i].x;
-//  var y = redrawTiles[i].y;
-//  ctx.clearRect(x * this.tile_size, y * this.tile_size, this.tile_size, 
-//                     this.tile_size);
-//};
+World.prototype.clear = function(gl) {
+  gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BUT);
 }
 
 
@@ -165,48 +122,25 @@ World.prototype.update = function() {
 // World.draw
 //===----------------------------------------------------------------------===//
 World.prototype.draw = function() {
-  if (this.firstDraw) {
-    function setTransforms(layer) {
-      // isometric
-      // rotate 45 degrees, scale y by 1.5 and x by 0.75
-      layer.setTransform(1.0606, 0.53032, -1.0606, 0.53032, 0, 0);
-      layer.translate(300, -230);
-    }
-
-    this.clear(this.tileLayer);
-
-    this.tileLayer.setTransform(-1, 0.5, 0, 1, 0, 0);
-    this.tileLayer.translate(-600, 340);
-    this.tileLayer.scale(1.06, 1.06);
-    this.drawTiles(this.tileLayer, /* side images */ true, /*inv*/ true);
-
-    this.tileLayer.setTransform(1, 0.5, 0, 1, 0, 0);
-    this.tileLayer.translate(562, -245);
-    this.tileLayer.scale(1.06, 1.06);
-    this.drawTiles(this.tileLayer, /* side images */ true);
-
-    setTransforms(this.tileLayer);
-    setTransforms(this.entLayer);
-
-    this.drawTiles(this.tileLayer);
-  }
-  //this.drawGrid();
-  this.clear(this.entLayer);
-  this.drawEntities(this.entLayer);
-  //drawDebugPoint(this.player, this.ctx);
-  this.firstDraw = false;
+  this.clear(this.gl);
+  this.drawTiles();
+  this.drawEntities();
 }
 
 
 //===----------------------------------------------------------------------===//
 // World.preload
 //===----------------------------------------------------------------------===//
-World.prototype.preload = function(done) {
+World.prototype.preload = function(gl, done) {
   var self = this;
   this.c = 0;
-  var len = TILES.length + OBJECTS.length;
+  var len = 0;
 
-  function entOnLoad() {
+  function onLoadAsset(asset) {
+    // generate texture
+    var texture = generateTexture(gl, asset.img);
+    asset.texture = texture;
+
     self.c += 1;
     if (self.c == len) {
       done();
@@ -214,19 +148,28 @@ World.prototype.preload = function(done) {
   }
 
   function doEnt(entity) {
+    var assets = entity.assets || [];
+    entity.assets = assets;
+
     if (entity.transparent) {
-      entOnLoad();
       return;
     }
-    entity.img = new Image();
-    entity.img.onload = entOnLoad;
-    entity.img.src = "img/" + entity.name + '.png';
-    if (entity.side) {
+
+    function doAsset(src) {
+      var asset = {};
       len += 1;
-      entity.side_img = new Image();
-      entity.side_img.onload = entOnLoad;
-      entity.side_img.src = 'img/' + entity.name + '_side' + '.png';
+      asset.img = new Image();
+      asset.img.onload = function() { onLoadAsset(asset); };
+      asset.img.src = src;
+      assets.push(asset);
     }
+
+    doAsset("img/" + entity.name + '.png');
+
+    if (entity.side) {
+      doAsset("img/" + entity.name + '_side.png');
+    }
+
   }
 
   // Tiles
@@ -256,26 +199,24 @@ World.prototype.drawEntities = function(layer) {
 //===----------------------------------------------------------------------===//
 // World.drawGrid
 //===----------------------------------------------------------------------===//
-World.prototype.drawGrid = function(layer) {
-  layer.strokeStyle = "rgba(0, 0, 0, 0.25)";
-
+World.prototype.drawGrid = function(ctx) {
   // draw vertical lines
   for (var i = 1; i < this.tile_width; ++i) {
     var x = i * this.tile_size;
-    drawLine(layer, x, 0, x, this.height);
+    drawLine(ctx, x, 0, x, this.height);
   }
 
   // draw horizontal lines
   for (var i = 1; i < this.tile_width; ++i) {
     var y = i * this.tile_size;
-    drawLine(layer, 0, y, this.width, y);
+    drawLine(ctx, 0, y, this.width, y);
   }
 
   // border
-  drawLine(layer, 0, 0, 0, this.height); // left
-  drawLine(layer, 0, 0, this.width, 0); // top
-  drawLine(layer, this.width-1, 0, this.width-1, this.height-1); // right
-  drawLine(layer, 0, this.height-1, this.width-1, this.height-1); // bottom
+  drawLine(ctx, 0, 0, 0, this.height); // left
+  drawLine(ctx, 0, 0, this.width, 0); // top
+  drawLine(ctx, this.width-1, 0, this.width-1, this.height-1); // right
+  drawLine(ctx, 0, this.height-1, this.width-1, this.height-1); // bottom
 }
 
 
@@ -284,27 +225,4 @@ World.prototype.drawGrid = function(layer) {
 // World.drawTiles
 //===----------------------------------------------------------------------===//
 World.prototype.drawTiles = function (ctx, side, inv) {
-
-  for (var y = 0; y < this.tile_height; y++) {
-
-    if (side) {
-      if (inv) {
-        ctx.translate(this.tile_size, 0);
-      } else {
-        ctx.translate(-this.tile_size, this.tile_size);
-      }
-    }
-
-    if (inv) ctx.save();
-    for (var x = 0; x < this.tile_width; x++) {
-      if (inv) ctx.translate(2*-this.tile_size, this.tile_size);
-      var tile = this.getTile(x, y);
-      var img = side ? tile.side_img || tile.img : tile.img;
-      var j = side ? 0 : 1;
-
-      ctx.drawImage(img, x * this.tile_size, y * this.tile_size * j);
-    }
-    if (inv) ctx.restore();
-  }
-
 }

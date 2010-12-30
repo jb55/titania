@@ -2,6 +2,8 @@ PROJECT=titania
 COMPRESSOR=closure --compilation_level ADVANCED_OPTIMIZATIONS
 
 SRCS= data.js \
+	webgl-utils.js \
+	glutil.js \
 	drawing.js \
 	ticker.js \
 	world.js \
