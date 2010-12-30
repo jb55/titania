@@ -12,6 +12,15 @@ function World(elem, vshader, fshader) {
   this.player = createPlayer();
   this.entities = [];
   this.input = new Input();
+  this.block_transforms = [];
+  this.normal_transforms = [];
+
+  // TEST
+  initTestWorld(this);
+
+  this.initBlockTransforms(this.block_transforms);
+  this.initBlockTransforms(this.normal_transforms);
+  this.cache_transforms = true;
 
   var canvas = document.getElementById(elem);
   canvas.width = this.width;
@@ -23,7 +32,7 @@ function World(elem, vshader, fshader) {
     [ "vNormal", "vColor", "vPosition"],
     [0.1, 0.1, 0.1, 1], // clear color
     10000, // depth
-    true //debug
+    false //debug
   );
 
   if (!gl) {
@@ -35,9 +44,6 @@ function World(elem, vshader, fshader) {
   this.grassTexture = loadImageTexture(gl, "img/grass.png");
   this.box = makeBox(gl);
   this.setupRenderer(gl);
-
-  // TEST
-  initTestWorld(this);
 
   var self = this;
   this.preload(this.gl, function() {
@@ -57,7 +63,7 @@ function World(elem, vshader, fshader) {
 function initTestWorld(world) {
   var gl = world.gl;
   world.map = test_map;
-  world.block_depth = 2;
+  world.block_depth = test_map.length;
 }
 
 //===----------------------------------------------------------------------===//
@@ -107,6 +113,25 @@ World.prototype.getBlock = function(x, y, z) {
   return BLOCKS[row[x]] || BLOCKS[0];
 };
 
+World.prototype.initBlockTransforms = function(bt) {
+  for (var z = 0; z < this.block_depth; z++) {
+    bt.push([]);
+    for (var y = 0; y < this.block_height; y++) {
+      bt[z].push([]);
+      for (var x = 0; x < this.block_width; x++) {
+        bt[z][y].push(null);
+      };
+    };
+  };
+}
+
+function setBlockTransform(t, m, x, y, z) {
+  t[z][y][x] = m;
+}
+
+function getBlockTransform(t, x, y, z) {
+  return t[z][y][x];
+}
 
 //===----------------------------------------------------------------------===//
 // World.clear
@@ -243,32 +268,6 @@ World.prototype.drawGrid = function(ctx) {
 }
 
 
-function calculateProjection(gl) {
-  gl.mvpMatrix.load(gl.projectionMatrix);
-  gl.mvpMatrix.multiply(gl.mvMatrix);
-  gl.mvpMatrix.setUniform(gl, gl.u_mvpMatrixLoc, false);
-  return gl.mvpMatrix;
-}
-
-function setProjection(gl, m) {
-  gl.mvpMatrix.load(m);
-  gl.mvpMatrix.setUniform(gl, gl.u_mvpMatrixLoc, false);
-}
-
-function setNormals(gl, m) {
-  gl.normalMatrix.load(m);
-  gl.normalMatrix.setUniform(gl, gl.u_normalMatrixLoc, false);
-}
-
-function calculateNormals(gl) {
-  gl.normalMatrix.load(gl.mvMatrix);
-  gl.normalMatrix.invert();
-  gl.normalMatrix.transpose();
-  gl.normalMatrix.setUniform(gl, gl.u_normalMatrixLoc, false);
-  return gl.normalMatrix;
-}
-
-
 //===----------------------------------------------------------------------===//
 // World.drawBlocks
 //===----------------------------------------------------------------------===//
@@ -282,20 +281,36 @@ World.prototype.drawBlocks = function(gl) {
           continue;
 
         // Make a model/view matrix.
-        gl.mvMatrix.makeIdentity();
-        gl.mvMatrix.translate(x*2, y*2, z*2);
+        var m = getBlockTransform(this.block_transforms, x, y, z);
+        if (!this.cache_transforms || !m) {
+          gl.mvMatrix.makeIdentity();
+          gl.mvMatrix.translate(x*2, y*2, z*2);
 
-        // Construct the normal matrix from the model-view matrix and pass it
-        // in
-        gl.normalMatrix.load(gl.mvMatrix);
-        gl.normalMatrix.invert();
-        gl.normalMatrix.transpose();
-        gl.normalMatrix.setUniform(gl, gl.u_normalMatrixLoc, false);
+          // Construct the normal matrix from the model-view matrix and pass it in
+          gl.normalMatrix.load(gl.mvMatrix);
+          gl.normalMatrix.invert();
+          gl.normalMatrix.transpose();
+          gl.normalMatrix.setUniform(gl, gl.u_normalMatrixLoc, false);
 
-        // Construct the model-view * projection matrix and pass it in
-        gl.mvpMatrix.load(gl.projectionMatrix);
-        gl.mvpMatrix.multiply(gl.mvMatrix);
-        gl.mvpMatrix.setUniform(gl, gl.u_modelViewProjMatrixLoc, false);
+          // Construct the model-view * projection matrix and pass it in
+          gl.mvpMatrix.load(gl.projectionMatrix);
+          gl.mvpMatrix.multiply(gl.mvMatrix);
+          gl.mvpMatrix.setUniform(gl, gl.u_modelViewProjMatrixLoc, false);
+
+          if (this.cache_transforms) {
+            m = new Matrix4(gl.mvpMatrix);
+            n = new Matrix4(gl.normalMatrix);
+
+            setBlockTransform(this.block_transforms, m, x, y, z);
+            setBlockTransform(this.normal_transforms, n, x, y, z);
+          }
+        } else {
+          var n = getBlockTransform(this.normal_transforms, x, y, z);
+          gl.mvpMatrix.load(m);
+          gl.mvpMatrix.setUniform(gl, gl.u_modelViewProjMatrixLoc, false);
+          gl.normalMatrix.load(n);
+          gl.normalMatrix.setUniform(gl, gl.u_normalMatrixLoc, false);
+        }
 
         gl.bindTexture(gl.TEXTURE_2D, block.assets[0].texture);
 
@@ -317,6 +332,7 @@ World.prototype.setupRenderer = function(gl) {
   gl.uniform1i(gl.getUniformLocation(gl.program, "sampler2d"), 0);
 
   gl.enable(gl.TEXTURE_2D);
+  gl.cullFace(gl.BACK);
 
   var scale = 0.05;
   gl.viewport(0, 0, this.width, this.height);
@@ -324,7 +340,7 @@ World.prototype.setupRenderer = function(gl) {
   //gl.projectionMatrix.multiply(isometricMatrix());
   gl.projectionMatrix = isometricMatrix();
   gl.projectionMatrix.rotate(-90, 1, 0, 0);
-  gl.projectionMatrix.translate(-1, 0, 0);
+  gl.projectionMatrix.translate(-1, -0.5, 0);
   gl.projectionMatrix.scale(scale, scale, scale);
 
   // Matrices!
