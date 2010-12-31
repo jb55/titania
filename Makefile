@@ -1,7 +1,7 @@
 PROJECT=titania
 COMPRESSOR=closure --compilation_level ADVANCED_OPTIMIZATIONS
 
-SRCS= J3DIMath.js \
+SRCS= glMatrix.js \
 	webgl-debug.js \
 	webgl-utils.js \
 	glutil.js \

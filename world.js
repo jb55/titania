@@ -3,11 +3,11 @@
 // World
 //===----------------------------------------------------------------------===//
 function World(elem, vshader, fshader) {
-  this.width = 800;
-  this.height = 600;
+  this.width = window.innerWidth * 0.9;
+  this.height = window.innerHeight * 0.9;
   this.block_size = 32;
-  this.block_width = this.width / this.block_size;
-  this.block_height = this.height / this.block_size;
+  this.block_width = 20;
+  this.block_height = 20;
   this.block_depth = 4;
   this.player = createPlayer();
   this.entities = [];
@@ -49,7 +49,7 @@ function World(elem, vshader, fshader) {
   this.preload(this.gl, function() {
     (function loop() {
       WebGLUtils.requestAnimationFrame(canvas, loop);
-      //self.update();
+      self.update();
       self.draw();
     })();
   });
@@ -104,13 +104,18 @@ World.prototype.getBlockFromPoint = function(x, y) {
 // World.getBlock
 //===----------------------------------------------------------------------===//
 World.prototype.getBlock = function(x, y, z) {
+  var def = BLOCKS[0]; // air
+  if (x < 0 || y < 0 || z < 0)
+    return def;
   var slice = this.map[z];
+  if (!slice)
+    return def;
   var row = slice[y];
 
   if (!row)
-    return BLOCKS[0];
+    return def;
 
-  return BLOCKS[row[x]] || BLOCKS[0];
+  return BLOCKS[row[x]] || def;
 };
 
 World.prototype.initBlockTransforms = function(bt) {
@@ -164,7 +169,7 @@ World.prototype.draw = function() {
   // Clear the canvas
   this.clear(gl);
 
-  this.drawBlocks(gl);
+  this.drawBlocks(gl, /* isoCull */ true);
 
   // Finish up.
   gl.flush();
@@ -243,80 +248,115 @@ World.prototype.drawEntities = function(layer) {
   };
 };
 
+//===----------------------------------------------------------------------===//
+// calculateNormals
+//===----------------------------------------------------------------------===//
+function calculateNormals(gl, dontSet) {
+  // Construct the normal matrix from the model-view matrix and pass it
+  // in
+  mat4.inverse(gl.mvMatrix, gl.normalMatrix);
+  mat4.transpose(gl.normalMatrix);
+  setNormalsUniform(gl, gl.normalMatrix);
+};
+
 
 //===----------------------------------------------------------------------===//
-// World.drawGrid
+// calculateProjection
 //===----------------------------------------------------------------------===//
-World.prototype.drawGrid = function(ctx) {
-  // draw vertical lines
-  for (var i = 1; i < this.block_width; ++i) {
-    var x = i * this.block_size;
-    drawLine(ctx, x, 0, x, this.height);
-  }
-
-  // draw horizontal lines
-  for (var i = 1; i < this.block_width; ++i) {
-    var y = i * this.block_size;
-    drawLine(ctx, 0, y, this.width, y);
-  }
-
-  // border
-  drawLine(ctx, 0, 0, 0, this.height); // left
-  drawLine(ctx, 0, 0, this.width, 0); // top
-  drawLine(ctx, this.width-1, 0, this.width-1, this.height-1); // right
-  drawLine(ctx, 0, this.height-1, this.width-1, this.height-1); // bottom
+function calculateProjection(gl) {
+  // Construct the model-view * projection matrix and pass it in
+  mat4.multiply(gl.projectionMatrix, gl.mvMatrix, gl.mvpMatrix)
+  setProjectionUniform(gl, gl.mvpMatrix);
 }
+
+
+//===----------------------------------------------------------------------===//
+// setProjection
+//===----------------------------------------------------------------------===//
+function setProjection(gl, m) {
+  mat4.set(gl.mvpMatrix, m);
+  setProjectionUniform(gl, m);
+}
+
+
+//===----------------------------------------------------------------------===//
+// setNormals
+//===----------------------------------------------------------------------===//
+function setNormals(gl, m) {
+  mat4.set(gl.normalMatrix, m);
+  setNormalsUniform(gl, m);
+}
+
+
+//===----------------------------------------------------------------------===//
+// setProjectionUniform
+//===----------------------------------------------------------------------===//
+function setProjectionUniform(gl, m) {
+  setUniform(gl, gl.u_mvpMatrixLoc, m);
+}
+
+
+//===----------------------------------------------------------------------===//
+// setNormalsUniform
+//===----------------------------------------------------------------------===//
+function setNormalsUniform(gl, m) {
+  setUniform(gl, gl.u_normalMatrixLoc, m);
+}
+
+
+//===----------------------------------------------------------------------===//
+// setUniform
+//===----------------------------------------------------------------------===//
+function setUniform(gl, loc, m) {
+  gl.uniformMatrix4fv(loc, false, m);
+}
+
 
 
 //===----------------------------------------------------------------------===//
 // World.drawBlocks
 //===----------------------------------------------------------------------===//
-World.prototype.drawBlocks = function(gl) {
-
+World.prototype.drawBlocks = function(gl, isoCull) {
   for (var z = 0; z < this.block_depth; z++) {
     for (var y = 0; y < this.block_height; y++) {
       for (var x = 0; x < this.block_width; x++) {
         var block = this.getBlock(x, y, z);
+
+        if (isoCull) {
+          var occludingBlock = this.getBlock(x-1, y+1, z+2);
+          if (!occludingBlock.transparent)
+            continue;
+        }
+
         if (block.transparent)
           continue;
 
-        // Make a model/view matrix.
+        var n;
         var m = getBlockTransform(this.block_transforms, x, y, z);
         if (!this.cache_transforms || !m) {
-          gl.mvMatrix.makeIdentity();
-          gl.mvMatrix.translate(x*2, y*2, z*2);
+          mat4.identity(gl.mvMatrix);
+          mat4.translate(gl.mvMatrix, [x*2, y*2, z*2]);
 
-          // Construct the normal matrix from the model-view matrix and pass it in
-          gl.normalMatrix.load(gl.mvMatrix);
-          gl.normalMatrix.invert();
-          gl.normalMatrix.transpose();
-          gl.normalMatrix.setUniform(gl, gl.u_normalMatrixLoc, false);
-
-          // Construct the model-view * projection matrix and pass it in
-          gl.mvpMatrix.load(gl.projectionMatrix);
-          gl.mvpMatrix.multiply(gl.mvMatrix);
-          gl.mvpMatrix.setUniform(gl, gl.u_modelViewProjMatrixLoc, false);
+          calculateNormals(gl);
+          calculateProjection(gl);
 
           if (this.cache_transforms) {
-            m = new Matrix4(gl.mvpMatrix);
-            n = new Matrix4(gl.normalMatrix);
+            m = mat4.create(gl.mvpMatrix);
+            n = mat4.create(gl.normalMatrix);
 
             setBlockTransform(this.block_transforms, m, x, y, z);
             setBlockTransform(this.normal_transforms, n, x, y, z);
           }
         } else {
-          var n = getBlockTransform(this.normal_transforms, x, y, z);
-          gl.mvpMatrix.load(m);
-          gl.mvpMatrix.setUniform(gl, gl.u_modelViewProjMatrixLoc, false);
-          gl.normalMatrix.load(n);
-          gl.normalMatrix.setUniform(gl, gl.u_normalMatrixLoc, false);
+          n = getBlockTransform(this.normal_transforms, x, y, z);
+          setNormalsUniform(gl, n);
+          setProjectionUniform(gl, m);
         }
 
         gl.bindTexture(gl.TEXTURE_2D, block.assets[0].texture);
 
         // Draw the cube
         gl.drawElements(gl.TRIANGLES, this.box.numIndices, gl.UNSIGNED_BYTE, 0);
-
       }
     }
   }
@@ -332,24 +372,28 @@ World.prototype.setupRenderer = function(gl) {
   gl.uniform1i(gl.getUniformLocation(gl.program, "sampler2d"), 0);
 
   gl.enable(gl.TEXTURE_2D);
-  gl.cullFace(gl.BACK);
 
-  var scale = 0.05;
+  var size = 23;
   gl.viewport(0, 0, this.width, this.height);
-  //gl.projectionMatrix = orthoMatrix();
-  //gl.projectionMatrix.multiply(isometricMatrix());
-  gl.projectionMatrix = isometricMatrix();
-  gl.projectionMatrix.rotate(-90, 1, 0, 0);
-  gl.projectionMatrix.translate(-1, -0.5, 0);
-  gl.projectionMatrix.scale(scale, scale, scale);
+
+  // set up the isometric projection
+  var iso = mat4.create();
+  gl.projectionMatrix = mat4.create();
+  mat4.identity(iso);
+  mat4.rotate(iso, (Math.PI/180)*90, [0, 0, 1]);
+  mat4.rotate(iso, (Math.PI/180)*35.264, [0, 1, 0]);
+  mat4.rotate(iso, (Math.PI/180)*45, [0, 0, 1]);
+  mat4.translate(iso, [-20, -15, 0]);
+  mat4.scale(iso, [1, 1, 1.4]);
+  var ortho = mat4.ortho(size, -size, -size*0.6, size*0.6, -40, 100);
+  mat4.multiply(ortho, iso, gl.projectionMatrix);
 
   // Matrices!
-  gl.mvMatrix = new Matrix4();
+  gl.mvMatrix = mat4.create();
   gl.u_normalMatrixLoc = gl.getUniformLocation(gl.program, "u_normalMatrix");
-  gl.normalMatrix = new Matrix4();
-  gl.u_modelViewProjMatrixLoc =
-          gl.getUniformLocation(gl.program, "u_modelViewProjMatrix");
-  gl.mvpMatrix = new Matrix4();
+  gl.normalMatrix = mat4.create();
+  gl.u_mvpMatrixLoc = gl.getUniformLocation(gl.program, "u_mvpMatrix");
+  gl.mvpMatrix = mat4.create();
 
   // Enable all of the vertex attribute arrays.
   gl.enableVertexAttribArray(0);

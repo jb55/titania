@@ -12,13 +12,12 @@
     #container {
       text-align: center;
       margin: auto;
-      margin-top: 80px;
-      width: 1280px;
+      min-width: 1280px;
     }
 
   </style>
   <script id="vshader" type="x-shader/x-vertex">
-      uniform mat4 u_modelViewProjMatrix;
+      uniform mat4 u_mvpMatrix;
       uniform mat4 u_normalMatrix;
       uniform vec3 lightDir;
 
@@ -31,7 +30,7 @@
 
       void main()
       {
-          gl_Position = u_modelViewProjMatrix * vPosition;
+          gl_Position = u_mvpMatrix * vPosition;
           v_texCoord = vTexCoord.st;
           vec4 transNormal = u_normalMatrix * vec4(vNormal, 1);
           v_Dot = max(dot(transNormal.xyz, lightDir), 0.4);

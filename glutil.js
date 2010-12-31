@@ -1,44 +1,5 @@
 
 //===----------------------------------------------------------------------===//
-// MatrixStack
-//===----------------------------------------------------------------------===//
-function MatrixStack(m) {
-  this.stack = [];
-}
-
-
-//===----------------------------------------------------------------------===//
-// MatrixStack.pushMatrix
-//===----------------------------------------------------------------------===//
-MatrixStack.prototype.pushMatrix = function(m) {
-  if (m) {
-    this.stack.push(new Matrix4(m));
-  } else if (this.m) {
-    this.stack.push(new Matrix4(this.m));
-  }
-}
-
-
-//===----------------------------------------------------------------------===//
-// MatrixStack.popMatrix
-//===----------------------------------------------------------------------===//
-MatrixStack.prototype.popMatrix = function() {
-  if (!this.stack.length) {
-    throw("Popping an empty stack");
-  }
-  return this.stack.pop();
-}
-
-
-//===----------------------------------------------------------------------===//
-// MatrixStack.getMatrix
-//===----------------------------------------------------------------------===//
-MatrixStack.prototype.getMatrix = function() {
-  return this.m;
-};
-
-
-//===----------------------------------------------------------------------===//
 // generateTexture
 //===----------------------------------------------------------------------===//
 function generateTexture(gl, image, texture) {
@@ -170,44 +131,11 @@ function initWebGL(canvas, vshader, fshader, attribs, clearColor, clearDepth,
 
 
 //===----------------------------------------------------------------------===//
-// orthoMatrix
-//  create a ortho matrix
-//===----------------------------------------------------------------------===//
-function orthoMatrix(width, height, fov, depth) {
-  var m = new Matrix4();
-  var scale = 0.5;
-  m.$matrix.m11 = scale;
-  m.$matrix.m12 = 0;
-  m.$matrix.m13 = 0;
-  m.$matrix.m14 = 0;
-
-  m.$matrix.m21 = 0;
-  m.$matrix.m22 = scale;
-  m.$matrix.m23 = 0;
-  m.$matrix.m24 = 0;
-
-  m.$matrix.m31 = 0;
-  m.$matrix.m32 = 0;
-  m.$matrix.m33 = 0;
-  m.$matrix.m34 = 0;
-
-  m.$matrix.m41 = 0;
-  m.$matrix.m42 = 0;
-  m.$matrix.m43 = 0;
-  m.$matrix.m44 = 1;
-  return m;
-}
-
-
-//===----------------------------------------------------------------------===//
 // perspectiveMatrix
 //  create a perspective matrix
 //===----------------------------------------------------------------------===//
 function perspectiveMatrix(width, height, fov, depth) {
-  var matrix = new Matrix4();
-  matrix.perspective(fov || 30, width/height, 1, depth || 10000)
-  matrix.lookat(0, 0, 7, 0, 0, 0, 0, 1, 0);
-  return matrix;
+  return mat4.perspective(fov || 30, width / height, 1, depth || 10000);
 }
 
 
@@ -215,26 +143,23 @@ function perspectiveMatrix(width, height, fov, depth) {
 // isometricMatrix
 //===----------------------------------------------------------------------===//
 function isometricMatrix() {
-  var m = new Matrix4();
-  m.$matrix.m11 = 0.70715;
-  m.$matrix.m12 = 0.40826;
-  m.$matrix.m13 = 0.57736;
-  m.$matrix.m14 = 0;
-
-  m.$matrix.m21 = 0;
-  m.$matrix.m22 = 0.81649;
-  m.$matrix.m23 =-0.57736;
-  m.$matrix.m24 = 0;
-
-  m.$matrix.m31 = -0.70715;
-  m.$matrix.m32 = 0.40826;
-  m.$matrix.m33 =-0.57736;
-  m.$matrix.m34 = 0;
-
-  m.$matrix.m41 = 0;
-  m.$matrix.m42 = 0;
-  m.$matrix.m43 = 0;
-  m.$matrix.m44 = 1;
+  var m = mat4.create();
+  m[0] = 0.70715;
+  m[1] = 0.40826;
+  m[2] = 0.57736;
+  m[3] = 0;
+  m[4] = 0;
+  m[5] = 0.81649;
+  m[6] =-0.57736;
+  m[7] = 0;
+  m[8] = -0.70715;
+  m[9] = 0.40826;
+  m[10] =-0.57736;
+  m[11] = 0;
+  m[12] = 1;
+  m[13] = 1;
+  m[14] = 1;
+  m[15] = 1;
   return m;
 }
 
