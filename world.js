@@ -30,8 +30,7 @@ function World(elem, vshader, fshader) {
 
   if (!gl) {
     // couldn't load WebGL
-    console.log('Error loading WebGL');
-    return;
+    return false;
   }
 
   gl.debugTexture = loadImageTexture(gl, "img/debug.png");
@@ -55,6 +54,8 @@ function World(elem, vshader, fshader) {
       self.render();
     })();
   });
+
+  return true;
 }
 
 

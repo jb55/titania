@@ -45,7 +45,7 @@ function loadShader(ctx, shaderId)
   // Create the shader object
   var shader = ctx.createShader(shaderType);
   if (shader == null) {
-    console.log("*** Error: unable to create shader '"+shaderId+"'");
+    ctx.console.log("*** Error: unable to create shader '"+shaderId+"'");
     return null;
   }
 
@@ -109,7 +109,7 @@ function initWebGL(canvas, vshader, fshader, attribs, clearColor, clearDepth,
   if (!linked) {
     // something went wrong with the link
     var error = gl.getProgramInfoLog (gl.program);
-    console.log("Error in program linking:"+error);
+    gl.console.log("Error in program linking:"+error);
 
     gl.deleteProgram(gl.program);
     gl.deleteProgram(fragmentShader);
