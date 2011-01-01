@@ -10,6 +10,7 @@ SRCS= glMatrix.js \
 	renderer.js \
 	data.js \
 	drawing.js \
+	controllers.js \
 	world.js \
 	entity.js \
 	input.js \

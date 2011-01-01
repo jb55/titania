@@ -34,7 +34,7 @@ function Input() {
   };
 
   document.ontouchstart = function(event) {
-      self.mousedown = true;
+    self.mousedown = true;
   }
 
   document.ontouchend = function(event) {
@@ -63,11 +63,13 @@ function Input() {
   document.onkeydown = function(e) {
     self.keydown = true;
     update_keyboard(e, true);
+    self.keyboard.shift = !!e.shiftKey;
   };
 
   document.onkeyup = function(e) {
     self.keydown = false;
     update_keyboard(e, false);
+    self.keyboard.shift = !!e.shiftKey;
   };
 
   // can be used to avoid key jamming

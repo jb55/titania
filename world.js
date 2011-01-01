@@ -75,6 +75,11 @@ function initTestWorld(world) {
   world.player = createPlayer(gl, playerNode);
 
   playerNode.translate([3, 3, 3]);
+  var playerController = new InputController(playerNode, function() {
+    return 0.1;
+  }, world.input);
+
+  world.scene.attachController(playerController);
 }
 
 //===----------------------------------------------------------------------===//
@@ -161,6 +166,7 @@ World.prototype.clear = function(gl) {
 // World.update
 //===----------------------------------------------------------------------===//
 World.prototype.update = function() {
+
   this.scene.update();
 };
 

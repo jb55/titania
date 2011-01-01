@@ -98,17 +98,18 @@ SceneNode.prototype.markForUpdate = function(scene) {
     return;
   }
 
+  // push parent first
+  this.needs_update = true;
+  SceneNode.queueUpdate(this);
+
   // mark children
   var children = this.children;
   for (var i = 0; i < children.length; i++) {
     var child = children[i];
     if (child.canIgnoreUpdate())
       continue;
-    children[i].markForUpdate();
+    child.markForUpdate();
   };
-
-  this.needs_update = true;
-  SceneNode.queueUpdate(this);
 };
 
 
@@ -168,9 +169,18 @@ SceneNode.prototype.translate = function(transVec) {
 //===----------------------------------------------------------------------===//
 function Scene(root) {
   this.root = root || new SceneNode();
+  this.controllers = [];
+
+  // temporary matrix for scene graph updates
   Scene.m = mat4.create();
 }
 
+//===----------------------------------------------------------------------===//
+// Scene.attachController
+//===----------------------------------------------------------------------===//
+Scene.prototype.attachController = function(controller) {
+  this.controllers.push(controller);
+}
 
 //===----------------------------------------------------------------------===//
 // Scene.getRootNode
@@ -183,6 +193,12 @@ Scene.prototype.getRootNode = function() {
 // Scene.update
 //===----------------------------------------------------------------------===//
 Scene.prototype.update = function() {
+  // update controllers
+  var controllers = this.controllers;
+  for (var i = 0; i < controllers.length; i++) {
+    controllers[i].update();
+  }
+
   var queue = SceneNode.queue;
   for (var i = 0; i < queue.length; i++) {
     queue[i].update();

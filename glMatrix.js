@@ -319,6 +319,10 @@ vec3.str = function(vec) {
 	return '[' + vec[0] + ', ' + vec[1] + ', ' + vec[2] + ']'; 
 };
 
+vec3.isZero = function(vec) {
+  return vec[0] == 0 && vec[1] == 0 && vec[2] == 0;
+}
+
 /*
  * mat3 - 3x3 Matrix
  */
