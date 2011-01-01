@@ -164,86 +164,6 @@ function isometricMatrix() {
 }
 
 
-//===----------------------------------------------------------------------===//
-// makeBox
-//===----------------------------------------------------------------------===//
-function makeBox(ctx)
-{
-  // box
-  //    v6----- v5
-  //   /|      /|
-  //  v1------v0|
-  //  | |     | |
-  //  | |v7---|-|v4
-  //  |/      |/
-  //  v2------v3
-  //
-  // vertex coords array
-  var vertices = new Float32Array(
-    [ 1, 1, 1,  -1, 1, 1,  -1,-1, 1,   1,-1, 1,    // v0-v1-v2-v3 front
-      1, 1, 1,   1,-1, 1,   1,-1,-1,   1, 1,-1,    // v0-v3-v4-v5 right
-      1, 1, 1,   1, 1,-1,  -1, 1,-1,  -1, 1, 1,    // v0-v5-v6-v1 top
-     -1, 1, 1,  -1, 1,-1,  -1,-1,-1,  -1,-1, 1,    // v1-v6-v7-v2 left
-     -1,-1,-1,   1,-1,-1,   1,-1, 1,  -1,-1, 1,    // v7-v4-v3-v2 bottom
-      1,-1,-1,  -1,-1,-1,  -1, 1,-1,   1, 1,-1 ]   // v4-v7-v6-v5 back
-  );
-
-  // normal array
-  var normals = new Float32Array(
-    [ 0, 0, 1,   0, 0, 1,   0, 0, 1,   0, 0, 1,     // v0-v1-v2-v3 front
-      1, 0, 0,   1, 0, 0,   1, 0, 0,   1, 0, 0,     // v0-v3-v4-v5 right
-      0, 1, 0,   0, 1, 0,   0, 1, 0,   0, 1, 0,     // v0-v5-v6-v1 top
-     -1, 0, 0,  -1, 0, 0,  -1, 0, 0,  -1, 0, 0,     // v1-v6-v7-v2 left
-      0,-1, 0,   0,-1, 0,   0,-1, 0,   0,-1, 0,     // v7-v4-v3-v2 bottom
-      0, 0,-1,   0, 0,-1,   0, 0,-1,   0, 0,-1 ]    // v4-v7-v6-v5 back
-   );
-
-  // texCoord array
-  var texCoords = new Float32Array(
-    [ 1, 1,   0, 1,   0, 0,   1, 0,    // v0-v1-v2-v3 front
-      0, 1,   0, 0,   1, 0,   1, 1,    // v0-v3-v4-v5 right
-      1, 0,   1, 1,   0, 1,   0, 0,    // v0-v5-v6-v1 top
-      1, 1,   0, 1,   0, 0,   1, 0,    // v1-v6-v7-v2 left
-      0, 0,   1, 0,   1, 1,   0, 1,    // v7-v4-v3-v2 bottom
-      0, 0,   1, 0,   1, 1,   0, 1 ]   // v4-v7-v6-v5 back
- );
-
-  // index array
-  var indices = new Uint8Array(
-    [  0, 1, 2,   0, 2, 3,    // front
-       4, 5, 6,   4, 6, 7,    // right
-       8, 9,10,   8,10,11,    // top
-      12,13,14,  12,14,15,    // left
-      16,17,18,  16,18,19,    // bottom
-      20,21,22,  20,22,23 ]   // back
-  );
-
-  var box = { };
-
-  box.normalBuffer = ctx.createBuffer();
-  ctx.bindBuffer(ctx.ARRAY_BUFFER, box.normalBuffer);
-  ctx.bufferData(ctx.ARRAY_BUFFER, normals, ctx.STATIC_DRAW);
-
-  box.texCoordBuffer = ctx.createBuffer();
-  ctx.bindBuffer(ctx.ARRAY_BUFFER, box.texCoordBuffer);
-  ctx.bufferData(ctx.ARRAY_BUFFER, texCoords, ctx.STATIC_DRAW);
-
-  box.vertexBuffer = ctx.createBuffer();
-  ctx.bindBuffer(ctx.ARRAY_BUFFER, box.vertexBuffer);
-  ctx.bufferData(ctx.ARRAY_BUFFER, vertices, ctx.STATIC_DRAW);
-
-  ctx.bindBuffer(ctx.ARRAY_BUFFER, null);
-
-  box.indexBuffer = ctx.createBuffer();
-  ctx.bindBuffer(ctx.ELEMENT_ARRAY_BUFFER, box.indexBuffer);
-  ctx.bufferData(ctx.ELEMENT_ARRAY_BUFFER, indices, ctx.STATIC_DRAW);
-  ctx.bindBuffer(ctx.ELEMENT_ARRAY_BUFFER, null);
-
-  box.numIndices = indices.length;
-
-  return box;
-}
-
 
 //===----------------------------------------------------------------------===//
 // bindBuffers
@@ -306,5 +226,86 @@ function doLoadImageTexture(ctx, image, texture) {
   ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
   //ctx.generateMipmap(ctx.TEXTURE_2D)
   ctx.bindTexture(ctx.TEXTURE_2D, null);
+}
+
+
+//===----------------------------------------------------------------------===//
+// makeBox
+//===----------------------------------------------------------------------===//
+function makeBox(ctx, obj)
+{
+  // box
+  //    v6----- v5
+  //   /|      /|
+  //  v1------v0|
+  //  | |     | |
+  //  | |v7---|-|v4
+  //  |/      |/
+  //  v2------v3
+  //
+  // vertex coords array
+  var vertices = new Float32Array(
+    [ 1, 1, 1,  -1, 1, 1,  -1,-1, 1,   1,-1, 1,    // v0-v1-v2-v3 front
+      1, 1, 1,   1,-1, 1,   1,-1,-1,   1, 1,-1,    // v0-v3-v4-v5 right
+      1, 1, 1,   1, 1,-1,  -1, 1,-1,  -1, 1, 1,    // v0-v5-v6-v1 top
+     -1, 1, 1,  -1, 1,-1,  -1,-1,-1,  -1,-1, 1,    // v1-v6-v7-v2 left
+     -1,-1,-1,   1,-1,-1,   1,-1, 1,  -1,-1, 1,    // v7-v4-v3-v2 bottom
+      1,-1,-1,  -1,-1,-1,  -1, 1,-1,   1, 1,-1 ]   // v4-v7-v6-v5 back
+  );
+
+  // normal array
+  var normals = new Float32Array(
+    [ 0, 0, 1,   0, 0, 1,   0, 0, 1,   0, 0, 1,     // v0-v1-v2-v3 front
+      1, 0, 0,   1, 0, 0,   1, 0, 0,   1, 0, 0,     // v0-v3-v4-v5 right
+      0, 1, 0,   0, 1, 0,   0, 1, 0,   0, 1, 0,     // v0-v5-v6-v1 top
+     -1, 0, 0,  -1, 0, 0,  -1, 0, 0,  -1, 0, 0,     // v1-v6-v7-v2 left
+      0,-1, 0,   0,-1, 0,   0,-1, 0,   0,-1, 0,     // v7-v4-v3-v2 bottom
+      0, 0,-1,   0, 0,-1,   0, 0,-1,   0, 0,-1 ]    // v4-v7-v6-v5 back
+   );
+
+  // texCoord array
+  var texCoords = new Float32Array(
+    [ 1, 1,   0, 1,   0, 0,   1, 0,    // v0-v1-v2-v3 front
+      0, 1,   0, 0,   1, 0,   1, 1,    // v0-v3-v4-v5 right
+      1, 0,   1, 1,   0, 1,   0, 0,    // v0-v5-v6-v1 top
+      1, 1,   0, 1,   0, 0,   1, 0,    // v1-v6-v7-v2 left
+      0, 0,   1, 0,   1, 1,   0, 1,    // v7-v4-v3-v2 bottom
+      0, 0,   1, 0,   1, 1,   0, 1 ]   // v4-v7-v6-v5 back
+ );
+
+  // index array
+  var indices = new Uint8Array(
+    [  0, 1, 2,   0, 2, 3,    // front
+       4, 5, 6,   4, 6, 7,    // right
+       8, 9,10,   8,10,11,    // top
+      12,13,14,  12,14,15,    // left
+      16,17,18,  16,18,19,    // bottom
+      20,21,22,  20,22,23 ]   // back
+  );
+
+  var box = obj || { };
+
+  box.normalBuffer = ctx.createBuffer();
+  ctx.bindBuffer(ctx.ARRAY_BUFFER, box.normalBuffer);
+  ctx.bufferData(ctx.ARRAY_BUFFER, normals, ctx.STATIC_DRAW);
+
+  box.texCoordBuffer = ctx.createBuffer();
+  ctx.bindBuffer(ctx.ARRAY_BUFFER, box.texCoordBuffer);
+  ctx.bufferData(ctx.ARRAY_BUFFER, texCoords, ctx.STATIC_DRAW);
+
+  box.vertexBuffer = ctx.createBuffer();
+  ctx.bindBuffer(ctx.ARRAY_BUFFER, box.vertexBuffer);
+  ctx.bufferData(ctx.ARRAY_BUFFER, vertices, ctx.STATIC_DRAW);
+
+  ctx.bindBuffer(ctx.ARRAY_BUFFER, null);
+
+  box.indexBuffer = ctx.createBuffer();
+  ctx.bindBuffer(ctx.ELEMENT_ARRAY_BUFFER, box.indexBuffer);
+  ctx.bufferData(ctx.ELEMENT_ARRAY_BUFFER, indices, ctx.STATIC_DRAW);
+  ctx.bindBuffer(ctx.ELEMENT_ARRAY_BUFFER, null);
+
+  box.numIndices = indices.length;
+
+  return box;
 }
 

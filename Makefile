@@ -5,6 +5,8 @@ SRCS= glMatrix.js \
 	webgl-debug.js \
 	webgl-utils.js \
 	glutil.js \
+	scene.js \
+	renderer.js \
 	data.js \
 	drawing.js \
 	world.js \
@@ -23,3 +25,6 @@ $(PROJECT)_debug.js: $(SRCS)
 $(PROJECT)_release.js: $(PROJECT)_debug.js
 	$(COMPRESSOR) < $< > $@
 	ln -sf $@ $(PROJECT).js
+
+clean:
+	rm -f $(PROJECT)_debug.js $(PROJECT)_release.js

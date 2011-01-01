@@ -490,7 +490,7 @@ mat4.create = function(mat) {
 		dest[13] = mat[13];
 		dest[14] = mat[14];
 		dest[15] = mat[15];
-	}
+	} 
 	
 	return dest;
 };

@@ -9,18 +9,11 @@ function World(elem, vshader, fshader) {
   this.block_width = 20;
   this.block_height = 20;
   this.block_depth = 4;
-  this.player = createPlayer();
   this.entities = [];
   this.input = new Input();
   this.block_transforms = [];
   this.normal_transforms = [];
-
-  // TEST
-  initTestWorld(this);
-
-  this.initBlockTransforms(this.block_transforms);
-  this.initBlockTransforms(this.normal_transforms);
-  this.cache_transforms = true;
+  this.scene = new Scene();
 
   var canvas = document.getElementById(elem);
   canvas.width = this.width;
@@ -41,7 +34,13 @@ function World(elem, vshader, fshader) {
     return;
   }
 
-  this.grassTexture = loadImageTexture(gl, "img/grass.png");
+  // TEST
+  initTestWorld(this);
+
+  this.initBlockTransforms(this.block_transforms);
+  this.initBlockTransforms(this.normal_transforms);
+  this.cache_transforms = true;
+
   this.box = makeBox(gl);
   this.setupRenderer(gl);
 
@@ -50,7 +49,7 @@ function World(elem, vshader, fshader) {
     (function loop() {
       WebGLUtils.requestAnimationFrame(canvas, loop);
       self.update();
-      self.draw();
+      self.render();
     })();
   });
 }
@@ -64,6 +63,12 @@ function initTestWorld(world) {
   var gl = world.gl;
   world.map = test_map;
   world.block_depth = test_map.length;
+
+  var rootNode = world.scene.getRootNode();
+  var playerNode = new SceneNode();
+
+  rootNode.attachObject(playerNode);
+  world.player = createPlayer(gl, playerNode);
 }
 
 //===----------------------------------------------------------------------===//
@@ -150,33 +155,27 @@ World.prototype.clear = function(gl) {
 // World.update
 //===----------------------------------------------------------------------===//
 World.prototype.update = function() {
-  this.player.update(this);
-  for (var i = 0; i < this.entities.length; i++) {
-    this.entities[i].update(this);
-  };
-
-  // do collisions
-  //this.doCollisions();
+  this.scene.update();
 };
 
 
 //===----------------------------------------------------------------------===//
-// World.draw
+// World.render
 //===----------------------------------------------------------------------===//
-World.prototype.draw = function() {
+World.prototype.render = function() {
   var gl = this.gl;
 
   // Clear the canvas
   this.clear(gl);
 
-  this.drawBlocks(gl, /* isoCull */ true);
+  this.renderBlocks(gl, /* isoCull */ true);
+  this.scene.render();
 
   // Finish up.
   gl.flush();
 
 //this.clear(this.gl);
-//this.drawBlocks(this.gl);
-//this.drawEntities();
+//this.renderBlocks(this.gl);
 //this.gl.flush();
 }
 
@@ -239,12 +238,11 @@ World.prototype.preload = function(gl, done) {
 
 
 //===----------------------------------------------------------------------===//
-// World.drawEntities
+// World.renderEntities
 //===----------------------------------------------------------------------===//
-World.prototype.drawEntities = function(layer) {
-  this.player.draw(this, layer);
+World.prototype.renderEntities = function(gl) {
   for (var i = 0; i < this.entities.length; i++) {
-    this.entities[i].draw(this, layer);
+    this.entities[i].render(gl);
   };
 };
 
@@ -314,9 +312,9 @@ function setUniform(gl, loc, m) {
 
 
 //===----------------------------------------------------------------------===//
-// World.drawBlocks
+// World.renderBlocks
 //===----------------------------------------------------------------------===//
-World.prototype.drawBlocks = function(gl, isoCull) {
+World.prototype.renderBlocks = function(gl, isoCull) {
   for (var z = 0; z < this.block_depth; z++) {
     for (var y = 0; y < this.block_height; y++) {
       for (var x = 0; x < this.block_width; x++) {
@@ -384,7 +382,7 @@ World.prototype.setupRenderer = function(gl) {
   mat4.rotate(iso, (Math.PI/180)*35.264, [0, 1, 0]);
   mat4.rotate(iso, (Math.PI/180)*45, [0, 0, 1]);
   mat4.translate(iso, [-20, -15, 0]);
-  mat4.scale(iso, [1, 1, 1.4]);
+  mat4.scale(iso, [1, 1, 1.2]);
   var ortho = mat4.ortho(size, -size, -size*0.6, size*0.6, -40, 100);
   mat4.multiply(ortho, iso, gl.projectionMatrix);
 

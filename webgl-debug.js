@@ -301,7 +301,7 @@ function resetToInitialState(ctx) {
   ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT | ctx.STENCIL_BUFFER_BIT);
 
   // TODO: This should NOT be needed but Firefox fails with 'hint'
-  while(ctx.getError());
+  while(ctx.getError()){}
 }
 
 function makeLostContextSimulatingContext(ctx) {
@@ -395,7 +395,7 @@ function makeLostContextSimulatingContext(ctx) {
     if (!contextLost_) {
       contextLost_ = true;
       ++contextId_;
-      while (ctx.getError());
+      while (ctx.getError()){}
       clearErrors();
       glErrorShadow_[ctx.CONTEXT_LOST_WEBGL] = true;
       setTimeout(function() {
