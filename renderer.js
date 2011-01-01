@@ -27,15 +27,21 @@ function renderCube(gl, cubeMesh) {
 //===----------------------------------------------------------------------===//
 // getCubePrimitive
 //===----------------------------------------------------------------------===//
-function getCubePrimitive(gl) {
+function getCubeMesh(gl) {
   if (g_cubePrimitive)
     return g_cubePrimitive;
 
-  var renderable = new Renderable();
-  renderable.mesh = makeBox(gl);
-  g_cubePrimitive = renderable;
-  g_cubePrimitive.render = function(gl) { 
-    renderCube(gl, g_cubePrimitive.mesh); 
-  };
+  g_cubePrimitive = makeBox(gl);
+  return g_cubePrimitive;
 }
 
+
+function getCubeRenderable(gl) {
+  var renderable = new Renderable();
+  renderable.mesh = getCubeMesh(gl);
+  renderable.render = function(gl) { 
+    gl.bindTexture(gl.TEXTURE_2D, this.texture)
+    renderCube(gl, this.mesh); 
+  };
+  return renderable;
+}

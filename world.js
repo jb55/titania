@@ -34,8 +34,11 @@ function World(elem, vshader, fshader) {
     return;
   }
 
+  gl.debugTexture = loadImageTexture(gl, "img/debug.png");
+
   // TEST
   initTestWorld(this);
+
 
   this.initBlockTransforms(this.block_transforms);
   this.initBlockTransforms(this.normal_transforms);
@@ -69,6 +72,8 @@ function initTestWorld(world) {
 
   rootNode.attachObject(playerNode);
   world.player = createPlayer(gl, playerNode);
+
+  playerNode.translate([3, 3, 3]);
 }
 
 //===----------------------------------------------------------------------===//
@@ -169,7 +174,7 @@ World.prototype.render = function() {
   this.clear(gl);
 
   this.renderBlocks(gl, /* isoCull */ true);
-  this.scene.render();
+  this.scene.render(gl, gl.projectionMatrix);
 
   // Finish up.
   gl.flush();
@@ -352,6 +357,7 @@ World.prototype.renderBlocks = function(gl, isoCull) {
         }
 
         gl.bindTexture(gl.TEXTURE_2D, block.assets[0].texture);
+        this.boundTexture = block.assets[0].texture;
 
         // Draw the cube
         gl.drawElements(gl.TRIANGLES, this.box.numIndices, gl.UNSIGNED_BYTE, 0);

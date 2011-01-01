@@ -5,14 +5,16 @@
 function SceneNode() {
   this.children = [];
   this.object = null;
-  this.position = vec3.create();
-  this.scale = vec3.create();
+  this.position = vec3.create([0, 0, 0]);
+  this.scale = vec3.create([1, 1, 1]);
   this.orientation = quat4.create();
   this.parent = null;
   this.relativeTransform = mat4.create();
   this.absoluteTransform = mat4.create();
+  mat4.identity(this.relativeTransform);
+  mat4.identity(this.absoluteTransform);
   this.visible = true;
-  this.needs_update = false;
+  this.markForUpdate();
 }
 
 //===----------------------------------------------------------------------===//
@@ -67,10 +69,6 @@ SceneNode.prototype.update = function() {
 
   this.needs_update = false;
 };
-
-SceneNode.prototype.render = function(gl) {
-  // body...
-}
 
 //===----------------------------------------------------------------------===//
 // SceneNode.needsUpdate
@@ -147,6 +145,7 @@ SceneNode.prototype.setScale = function(vec) {
 //===----------------------------------------------------------------------===//
 SceneNode.prototype.attachObject = function(obj) {
   if (obj instanceof SceneNode) {
+    obj.parent = this;
     this.children.push(obj);
   } else {
     this.object = obj;
@@ -159,8 +158,8 @@ SceneNode.prototype.attachObject = function(obj) {
 // SceneNode.translate
 //===----------------------------------------------------------------------===//
 SceneNode.prototype.translate = function(transVec) {
-  var currentVec = this.position || vec3.create();
-  vec3.add(currentVec, transVec);
+  vec3.add(this.position, transVec);
+  this.markForUpdate();
 };
 
 
@@ -169,6 +168,7 @@ SceneNode.prototype.translate = function(transVec) {
 //===----------------------------------------------------------------------===//
 function Scene(root) {
   this.root = root || new SceneNode();
+  Scene.m = mat4.create();
 }
 
 
@@ -187,12 +187,25 @@ Scene.prototype.update = function() {
   for (var i = 0; i < queue.length; i++) {
     queue[i].update();
   }
-  queue = [];
+  SceneNode.queue.length = 0;
+}
+
+Scene.prototype.render = function(gl, camera) {
+  this.renderNode(gl, this.getRootNode(), camera, Scene.m);
 }
 
 //===----------------------------------------------------------------------===//
 // Scene.render
 //===----------------------------------------------------------------------===//
-Scene.prototype.render = function(gl) {
-  this.getRootNode().render();
+Scene.prototype.renderNode = function(gl, node, camera, m) {
+  if (node.object) {
+    mat4.multiply(camera, node.absoluteTransform, m);
+    setProjectionUniform(gl, m);
+    node.object.render(gl);
+  }
+
+  var children = node.children;
+  for (var i = 0; i < children.length; i++) {
+    this.renderNode(gl, children[i], camera, m);
+  }
 }

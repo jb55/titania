@@ -5,6 +5,7 @@ SRCS= glMatrix.js \
 	webgl-debug.js \
 	webgl-utils.js \
 	glutil.js \
+	textures.js \
 	scene.js \
 	renderer.js \
 	data.js \
