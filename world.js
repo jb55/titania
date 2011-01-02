@@ -75,28 +75,21 @@ function initTestWorld(world) {
   var player = world.player = createPlayer(gl, playerNode);
   world.entities.push(player);
 
+  // add eye camera
+  //camera.sceneNode.setPosition([-player.head.size*4, 0, 0]);
+  //player.head.sceneNode.attachObject(camera.sceneNode);
+
   playerNode.translate([2, 2, 2]);
 
   player.orientation_controller = 
-    new FacingController(playerNode, 
-      function(angle) { // step function
-        return 0.1 * (1/(angle/180));
-      }, 
-      function() { // target vector function
-        player.last_movement = player.last_movement || vec3.create();
-        return player.last_movement;
-      });
+    new FacingController(playerNode);
 
   player.movement_controller = 
     new InputController(playerNode, 0.12, world.input);
 
-  player.update = function() {
-    player.last_movement = this.movement_controller.update();
-    this.orientation_controller.update();
-  }
-
   var bobbingController = 
     new BobbingController(playerNode, 0.1, 0.01, 2);
+
   world.scene.attachController(bobbingController);
 }
 
@@ -199,7 +192,7 @@ World.prototype.render = function() {
   this.clear(gl);
 
   this.renderBlocks(gl, /* isoCull */ true);
-  this.scene.render(gl, gl.projectionMatrix);
+  this.scene.render(gl, this.camera);
 
   // Finish up.
   gl.flush();
@@ -382,11 +375,9 @@ World.prototype.renderBlocks = function(gl, isoCull) {
             n = mat4.create(gl.normalMatrix);
 
             setBlockTransform(this.block_transforms, m, x, y, z);
-            setBlockTransform(this.normal_transforms, n, x, y, z);
           }
         } else {
           n = getBlockTransform(this.normal_transforms, x, y, z);
-          setNormalsUniform(gl, n);
           setProjectionUniform(gl, m);
         }
 
@@ -425,6 +416,10 @@ World.prototype.setupRenderer = function(gl) {
   mat4.scale(iso, [1, 1, 1.2]);
   var ortho = mat4.ortho(size, -size, -size*0.6, size*0.6, -40, 100);
   mat4.multiply(ortho, iso, gl.projectionMatrix);
+  this.camera = createCamera(gl.projectionMatrix);
+
+//gl.projectionMatrix = perspectiveMatrix(this.width, this.height, 30, 100);
+//mat4.translate(gl.projectionMatrix, [-20, -15, -30]);
 
   // Matrices!
   gl.mvMatrix = mat4.create();

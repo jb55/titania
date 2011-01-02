@@ -48,9 +48,6 @@ function createPlayer(gl, playerNode) {
 
   playerNode.attachObject(player);
 
-  player.update = function(world) {
-  }
-
   function attachLimb(scale, position) {
     var limb = new Entity();
     limb.renderable = getCubeRenderable(gl);
@@ -82,7 +79,57 @@ function createPlayer(gl, playerNode) {
     [headSize, headSize, headSize], [0, 0, bodyScale+headSize]); // head
 
   player.head.renderable.texture = gl.debugTexture;
+  player.head.size = headSize;
 
   return player;
 }
 
+//===----------------------------------------------------------------------===//
+// createPerspectiveCamera
+//===----------------------------------------------------------------------===//
+function createPerspectiveCamera(width, height, fov, depth) {
+  var m = perspectiveMatrix(width, height, fov, depth);
+  var camera = createCamera(m);
+  return camera;
+}
+
+//===----------------------------------------------------------------------===//
+// createCamera
+//===----------------------------------------------------------------------===//
+function createCamera(frustum) {
+  var camera = new Camera(frustum);
+  var cameraNode = new SceneNode();
+  cameraNode.attachObject(camera);
+
+  return camera;
+}
+
+//===----------------------------------------------------------------------===//
+// Camera
+//===----------------------------------------------------------------------===//
+function Camera(frustum) {
+  Entity.constructor.call(this);
+  this.frustum = frustum;
+  this.absoluteView = mat4.create(frustum);
+  this.view_outdated = true;
+}
+
+
+//===----------------------------------------------------------------------===//
+// Camera.isViewOutdated
+//===----------------------------------------------------------------------===//
+Camera.prototype.isViewOutdated = function() {
+  return this.view_outdated;
+}
+
+//===----------------------------------------------------------------------===//
+// Camera.getView
+//===----------------------------------------------------------------------===//
+Camera.prototype.getView = function() {
+//if (this.sceneNode.parent && this.isViewOutdated()) {
+//  this.view_outdated = true;
+//  mat4.multiply(
+//    this.frustum, this.sceneNode.absoluteTransform, this.absoluteView);
+//}
+  return this.absoluteView;
+}

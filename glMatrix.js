@@ -1644,6 +1644,16 @@ quat4.fromAngleAxis = function(angle, axis, dest) {
   return dest;
 }
 
+quat4.dot = function(q1, q2) {
+  return q1[0]*q2[0] + q1[1]*q2[1] + q1[2]*q2[2] + q1[3]*q2[3];
+}
+
+quat4.slerp = function(t, q1, q2, dest) {
+  if (!dest) { dest = quat4.create() }
+  var cos = quat4.dot(q1, q2);
+  
+}
+
 /*
  * quat4.multiplyVec3
  * Transforms a vec3 with the given quaternion

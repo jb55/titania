@@ -74,7 +74,9 @@ FacingController.prototype.update = function() {
   //this.node.rotate(1, [0, 0, 1]);
 }
 
-
+//===----------------------------------------------------------------------===//
+// BobbingController
+//===----------------------------------------------------------------------===//
 function BobbingController(node, rate, spin, height) {
   this.node = node;
   this.rate = rate || 0.1;
@@ -83,6 +85,9 @@ function BobbingController(node, rate, spin, height) {
   this.bob = 0;
 }
 
+//===----------------------------------------------------------------------===//
+// BobbingController.update
+//===----------------------------------------------------------------------===//
 BobbingController.prototype.update = function() {
   this.bob += this.rate;
   var cos = Math.cos(this.bob*this.height)*0.01;

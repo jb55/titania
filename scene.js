@@ -203,14 +203,14 @@ Scene.prototype.update = function() {
 }
 
 Scene.prototype.render = function(gl, camera) {
-  this.renderNode(gl, this.getRootNode(), camera, Scene.m);
+  this.renderNode(gl, this.getRootNode(), camera.getView(), Scene.m);
 }
 
 //===----------------------------------------------------------------------===//
 // Scene.render
 //===----------------------------------------------------------------------===//
 Scene.prototype.renderNode = function(gl, node, camera, m) {
-  if (node.object) {
+  if (node.object && node.object.render) {
     mat4.multiply(camera, node.absoluteTransform, m);
     setProjectionUniform(gl, m);
     node.object.render(gl);
