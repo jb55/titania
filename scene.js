@@ -1,4 +1,9 @@
 
+var POSITION = 1 << 0;
+var SCALE = 1 << 1;
+var ORIENTATION = 1 << 2;
+var ZROT = 1 << 3;
+
 //===----------------------------------------------------------------------===//
 // SceneNode
 //===----------------------------------------------------------------------===//
@@ -7,7 +12,8 @@ function SceneNode() {
   this.object = null;
   this.position = vec3.create([0, 0, 0]);
   this.scale = vec3.create([1, 1, 1]);
-  this.orientation = quat4.create();
+  this.zrot = 0;
+  this.orientation = quat4.identity();
   this.parent = null;
   this.relativeTransform = mat4.create();
   this.absoluteTransform = mat4.create();
@@ -38,28 +44,7 @@ SceneNode.prototype.update = function() {
   }
 
   var relative = this.relativeTransform;
-  var scale = this.scale;
-  var position = this.position;
-
-  relative[0] = scale[0];
-  relative[1] = 0;
-  relative[2] = 0;
-  relative[3] = 0;
-
-  relative[4] = 0;
-  relative[5] = scale[1];
-  relative[6] = 0;
-  relative[7] = 0;
-
-  relative[8] = 0;
-  relative[9] = 0;
-  relative[10] = scale[2];
-  relative[11] = 0;
-
-  relative[12] = position[0];
-  relative[13] = position[1];
-  relative[14] = position[2];
-  relative[15] = 1;
+  mat4.createTransform(this.position, this.scale, this.orientation, relative)
 
   if (parent) {
     mat4.multiply(parent.absoluteTransform, relative, this.absoluteTransform);
@@ -123,6 +108,17 @@ SceneNode.prototype.setPosition = function(vec) {
 
 
 //===----------------------------------------------------------------------===//
+// SceneNode.rotate
+//===----------------------------------------------------------------------===//
+SceneNode.prototype.rotate = function(angle, axis) {
+  var q = quat4.fromAngleAxis(angle, axis);
+  quat4.normalize(q);
+  quat4.multiply(this.orientation, q);
+  this.markForUpdate();
+};
+
+
+//===----------------------------------------------------------------------===//
 // SceneNode.setOrientation
 //===----------------------------------------------------------------------===//
 SceneNode.prototype.setOrientation = function(quat) {
@@ -158,8 +154,8 @@ SceneNode.prototype.attachObject = function(obj) {
 //===----------------------------------------------------------------------===//
 // SceneNode.translate
 //===----------------------------------------------------------------------===//
-SceneNode.prototype.translate = function(transVec) {
-  vec3.add(this.position, transVec);
+SceneNode.prototype.translate = function(vec) {
+  vec3.add(this.position, vec);
   this.markForUpdate();
 };
 

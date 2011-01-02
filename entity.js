@@ -4,6 +4,21 @@
 // Entity
 //===----------------------------------------------------------------------===//
 function Entity(node) {
+  this.movement_controller = null;
+  this.orientation_controller = null;
+}
+
+
+//===----------------------------------------------------------------------===//
+// Entity.update
+//===----------------------------------------------------------------------===//
+Entity.prototype.updateControllers = function() {
+  if (this.movement_controller) {
+    this.movement_controller.update();
+  }
+  if (this.orientation_controller) {
+    this.orientation_controller.update();
+  }
 }
 
 
@@ -11,7 +26,7 @@ function Entity(node) {
 // Entity.update
 //===----------------------------------------------------------------------===//
 Entity.prototype.update = function() {
-  // Do nothing
+  this.updateControllers();
 }
 
 
@@ -32,17 +47,9 @@ function createPlayer(gl, playerNode) {
   var player = new Entity();
 
   playerNode.attachObject(player);
-  player.animated = true;
 
   player.update = function(world) {
-    var keys = world.input.keyboard;
-    if (keys.up) moveObject(player, NORTH, world);
-    if (keys.left) moveObject(player, WEST, world);
-    if (keys.right) moveObject(player, EAST, world);
-    if (keys.down) moveObject(player, SOUTH, world);
   }
-
-  player.sub_entities = [];
 
   function attachLimb(scale, position) {
     var limb = new Entity();
@@ -62,17 +69,17 @@ function createPlayer(gl, playerNode) {
   var armThickness = 0.1;
   var armPos = -bodyThickness-armThickness;
 
-  player.body = attachLimb([bodyThickness, bodyThickness/2, bodyScale], 
-                           [0, 0, 0]); // body
+  player.body = attachLimb(
+    [bodyThickness, bodyThickness/2, bodyScale], [0, 0, 0]); // body
 
-  player.leftArm = attachLimb([armThickness, armThickness, 1], 
-                              [-armPos, 0, -armPos]); // left arm
+  player.leftArm = attachLimb(
+    [armThickness, armThickness, 1], [-armPos, 0, -armPos]); // left arm
 
-  player.rightArm = attachLimb([armThickness, armThickness, 1], 
-                               [armPos, 0, -armPos]); // right arm
+  player.rightArm = attachLimb(
+    [armThickness, armThickness, 1], [armPos, 0, -armPos]); // right arm
 
-  player.head = attachLimb([headSize, headSize, headSize], 
-                           [0, 0, bodyScale+headSize]); // head
+  player.head = attachLimb(
+    [headSize, headSize, headSize], [0, 0, bodyScale+headSize]); // head
 
   player.head.renderable.texture = gl.debugTexture;
 

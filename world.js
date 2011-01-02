@@ -72,14 +72,32 @@ function initTestWorld(world) {
   var playerNode = new SceneNode();
 
   rootNode.attachObject(playerNode);
-  world.player = createPlayer(gl, playerNode);
+  var player = world.player = createPlayer(gl, playerNode);
+  world.entities.push(player);
 
-  playerNode.translate([3, 3, 3]);
-  var playerController = new InputController(playerNode, function() {
-    return 0.1;
-  }, world.input);
+  playerNode.translate([2, 2, 2]);
 
-  world.scene.attachController(playerController);
+  player.orientation_controller = 
+    new FacingController(playerNode, 
+      function(angle) { // step function
+        return 0.1 * (1/(angle/180));
+      }, 
+      function() { // target vector function
+        player.last_movement = player.last_movement || vec3.create();
+        return player.last_movement;
+      });
+
+  player.movement_controller = 
+    new InputController(playerNode, 0.12, world.input);
+
+  player.update = function() {
+    player.last_movement = this.movement_controller.update();
+    this.orientation_controller.update();
+  }
+
+  var bobbingController = 
+    new BobbingController(playerNode, 0.1, 0.01, 2);
+  world.scene.attachController(bobbingController);
 }
 
 //===----------------------------------------------------------------------===//
@@ -166,7 +184,7 @@ World.prototype.clear = function(gl) {
 // World.update
 //===----------------------------------------------------------------------===//
 World.prototype.update = function() {
-
+  this.updateEntities();
   this.scene.update();
 };
 
@@ -250,13 +268,22 @@ World.prototype.preload = function(gl, done) {
 
 
 //===----------------------------------------------------------------------===//
+// World.updateEntities
+//===----------------------------------------------------------------------===//
+World.prototype.updateEntities = function(gl) {
+  for (var i = 0; i < this.entities.length; i++) {
+    this.entities[i].update();
+  };
+}
+
+//===----------------------------------------------------------------------===//
 // World.renderEntities
 //===----------------------------------------------------------------------===//
 World.prototype.renderEntities = function(gl) {
   for (var i = 0; i < this.entities.length; i++) {
     this.entities[i].render(gl);
   };
-};
+}
 
 //===----------------------------------------------------------------------===//
 // calculateNormals
@@ -267,7 +294,7 @@ function calculateNormals(gl, dontSet) {
   mat4.inverse(gl.mvMatrix, gl.normalMatrix);
   mat4.transpose(gl.normalMatrix);
   setNormalsUniform(gl, gl.normalMatrix);
-};
+}
 
 
 //===----------------------------------------------------------------------===//

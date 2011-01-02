@@ -499,6 +499,35 @@ mat4.create = function(mat) {
 	return dest;
 };
 
+mat4.createTransform = function(position, scale, orientation, dest) {
+  if (!dest) { dest = mat4.create(); }
+
+  var rot = quat4.toMat3(orientation);
+
+  dest[0] = scale[0] * rot[0];
+  dest[1] = scale[0] * rot[1];
+  dest[2] = scale[0] * rot[2];
+  dest[3] = 0;
+
+  dest[4] = scale[1] * rot[3];
+  dest[5] = scale[1] * rot[4];
+  dest[6] = scale[1] * rot[5];
+  dest[7] = 0;
+
+  dest[8] = scale[2] * rot[6];
+  dest[9] = scale[2] * rot[7];
+  dest[10] = scale[2] * rot[8];
+  dest[11] = 0;
+
+  dest[12] = position[0];
+  dest[13] = position[1];
+  dest[14] = position[2];
+  dest[15] = 1;
+
+  return dest;
+}
+
+
 /*
  * mat4.set
  * Copies the values of one mat4 to another
@@ -1575,6 +1604,44 @@ quat4.multiply = function(quat, quat2, dest) {
 	dest[3] = qaw*qbw - qax*qbx - qay*qby - qaz*qbz;
 	
 	return dest;
+}
+
+quat4.identity = function(dest) {
+  if (!dest) { dest = quat4.create(); }
+  dest[0] = 0;
+  dest[1] = 0;
+  dest[2] = 0;
+  dest[3] = 1;
+  return dest;
+}
+
+/*
+quat4.multiplyVec3 = function(quat, vec, dest) {
+  // TODO: convert to js
+  Vector3 uv, uuv;
+  Vector3 qvec(x, y, z);
+  uv = qvec.crossProduct(v);
+  uuv = qvec.crossProduct(uv);
+  uv *= (2.0f * w);
+  uuv *= 2.0f;
+
+  return v + uv + uuv;
+}
+*/
+
+/*
+ * quat4.fromAngleAxis
+ * Returns a quaternion given an angle and an axis
+ */
+quat4.fromAngleAxis = function(angle, axis, dest) {
+  if (!dest) { dest = quat4.create(); }
+  var halfAngle = 0.5*angle;
+  var sin = Math.sin(halfAngle);
+  dest[0] = sin*axis[0];
+  dest[1] = sin*axis[1];
+  dest[2] = sin*axis[2];
+  dest[3] = Math.cos(halfAngle);
+  return dest;
 }
 
 /*
