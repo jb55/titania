@@ -11,9 +11,8 @@ function World(elem, vshader, fshader) {
   this.block_depth = 4;
   this.entities = [];
   this.input = new Input();
-  this.block_transforms = [];
-  this.normal_transforms = [];
   this.scene = new Scene();
+  this.terrain = new BlockTerrain();
 
   var canvas = document.getElementById(elem);
   canvas.width = this.width;
@@ -25,7 +24,7 @@ function World(elem, vshader, fshader) {
     [ "vNormal", "vColor", "vPosition"],
     [0.1, 0.1, 0.1, 1], // clear color
     10000, // depth
-    false //debug
+    true //debug
   );
 
   if (!gl) {
@@ -37,11 +36,6 @@ function World(elem, vshader, fshader) {
 
   // TEST
   initTestWorld(this);
-
-
-  this.initBlockTransforms(this.block_transforms);
-  this.initBlockTransforms(this.normal_transforms);
-  this.cache_transforms = true;
 
   this.box = makeBox(gl);
   this.setupRenderer(gl);
@@ -59,14 +53,14 @@ function World(elem, vshader, fshader) {
 }
 
 
-
 //===----------------------------------------------------------------------===//
 // initTestWorld
 //===----------------------------------------------------------------------===//
 function initTestWorld(world) {
   var gl = world.gl;
   world.map = test_map;
-  world.block_depth = test_map.length;
+  world.terrain.loadMap(gl, world.map);
+  world.terrain.vbo.bind(gl);
 
   var rootNode = world.scene.getRootNode();
   var playerNode = new SceneNode();
@@ -145,18 +139,6 @@ World.prototype.getBlock = function(x, y, z) {
   return BLOCKS[row[x]] || def;
 };
 
-World.prototype.initBlockTransforms = function(bt) {
-  for (var z = 0; z < this.block_depth; z++) {
-    bt.push([]);
-    for (var y = 0; y < this.block_height; y++) {
-      bt[z].push([]);
-      for (var x = 0; x < this.block_width; x++) {
-        bt[z][y].push(null);
-      };
-    };
-  };
-}
-
 function setBlockTransform(t, m, x, y, z) {
   t[z][y][x] = m;
 }
@@ -191,8 +173,8 @@ World.prototype.render = function() {
   // Clear the canvas
   this.clear(gl);
 
-  this.renderBlocks(gl, /* isoCull */ true);
-  this.scene.render(gl, this.camera);
+  this.terrain.vbo.render(gl, gl.QUADS);
+  //this.scene.render(gl, this.camera);
 
   // Finish up.
   gl.flush();
@@ -344,55 +326,6 @@ function setUniform(gl, loc, m) {
 
 
 //===----------------------------------------------------------------------===//
-// World.renderBlocks
-//===----------------------------------------------------------------------===//
-World.prototype.renderBlocks = function(gl, isoCull) {
-  for (var z = 0; z < this.block_depth; z++) {
-    for (var y = 0; y < this.block_height; y++) {
-      for (var x = 0; x < this.block_width; x++) {
-        var block = this.getBlock(x, y, z);
-
-        if (isoCull) {
-          var occludingBlock = this.getBlock(x-1, y+1, z+2);
-          if (!occludingBlock.transparent)
-            continue;
-        }
-
-        if (block.transparent)
-          continue;
-
-        var n;
-        var m = getBlockTransform(this.block_transforms, x, y, z);
-        if (!this.cache_transforms || !m) {
-          mat4.identity(gl.mvMatrix);
-          mat4.translate(gl.mvMatrix, [x*2, y*2, z*2]);
-
-          calculateNormals(gl);
-          calculateProjection(gl);
-
-          if (this.cache_transforms) {
-            m = mat4.create(gl.mvpMatrix);
-            n = mat4.create(gl.normalMatrix);
-
-            setBlockTransform(this.block_transforms, m, x, y, z);
-          }
-        } else {
-          n = getBlockTransform(this.normal_transforms, x, y, z);
-          setProjectionUniform(gl, m);
-        }
-
-        gl.bindTexture(gl.TEXTURE_2D, block.assets[0].texture);
-        this.boundTexture = block.assets[0].texture;
-
-        // Draw the cube
-        gl.drawElements(gl.TRIANGLES, this.box.numIndices, gl.UNSIGNED_BYTE, 0);
-      }
-    }
-  }
-}
-
-
-//===----------------------------------------------------------------------===//
 // setupRenderer
 //===----------------------------------------------------------------------===//
 World.prototype.setupRenderer = function(gl) {
@@ -427,6 +360,8 @@ World.prototype.setupRenderer = function(gl) {
   gl.normalMatrix = mat4.create();
   gl.u_mvpMatrixLoc = gl.getUniformLocation(gl.program, "u_mvpMatrix");
   gl.mvpMatrix = mat4.create();
+
+  gl.u_mvpMatrixLoc = gl.getUniformLocation(gl.program, "u_mvpMatrix");
 
   // Enable all of the vertex attribute arrays.
   gl.enableVertexAttribArray(0);
