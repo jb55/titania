@@ -43,7 +43,7 @@ VBO.prototype.bind = function(gl) {
   if (this.texCoordBuffer) {
     gl.enableVertexAttribArray(1);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
-    gl.vertexAttribPointer(1, /* parameterize this */3, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
   }
 
   if (this.normalBuffer) {
@@ -56,6 +56,7 @@ VBO.prototype.bind = function(gl) {
 
 VBO.prototype.render = function(gl, kind) {
   if (this.indexBuffer) {
+    gl.drawElements(gl.TRIANGLES, this.numElements, gl.UNSIGNED_BYTE, 0);
   } else {
     gl.drawArrays(kind, 0, this.numElements);
   }
