@@ -1,5 +1,5 @@
 
-function VBO(gl, vertices, texCoords, normals, indices) {
+function VBO(gl, vertices, texCoords, indices, normals) {
 
   if (normals) {
     this.normalBuffer = gl.createBuffer();

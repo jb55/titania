@@ -30,13 +30,15 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
   this.yn = yn;
   this.zn = zn;
 
-  var size = zn*yn*xn;
+  var numCubes = zn*yn*xn;
+  var vertPerSide = 4;
 
-  var pos = new Float32Array(size * 12);
-  var texcoord = new Float32Array(size * 12);
+  var verts = new Float32Array(numCubes * vertPerSide * 3);
+  var texCoords = new Float32Array(numCubes * vertPerSide * 2);
+  var indices = new Uint8Array(numCubes * vertPerSide);
 
-  tesselate(data, xn, yn, zn, pos, texcoord);
-  this.vbo = new VBO(gl, pos, texcoord);
+  tesselate(data, xn, yn, zn, verts, texCoords, indices);
+  this.vbo = new VBO(gl, pos, texCoords, indices);
 
 //var normal = new Float32Array(size);
 //var s = new Float32Array(size);
@@ -54,18 +56,50 @@ function clamp(n, size) {
   }
 }
 
+function texCoordFromId(id, xn, u, v, dest, ind) {
+  var lu = (id % xn) * u;
+  var ru = lu + u;
+  var tv = (Math.floor(id / xn) * v) + v;
+  var bv = tv + v;
+
+  dest[ind++] = lu;
+  dest[ind++] = bv;
+
+  dest[ind++] = ru;
+  dest[ind++] = bv;
+
+  dest[ind++] = ru;
+  dest[ind++] = tv;
+
+  dest[ind++] = lu;
+  dest[ind++] = tv;
+
+  return ind;
+}
+
 function drawTerrain(gl, terrain) {
   
+}
+
+function buildGrid(data, xn, yn, zn, verts, texCoords, normals) {
 }
 
 //===----------------------------------------------------------------------===//
 // tesselate
 //===----------------------------------------------------------------------===//
-function tesselate(data, xn, yn, zn, pos, texcoord) {
+function tesselate(data, xn, yn, zn, pos, texcoord, indices) {
   var value;
   var posInd = 0;
   var texInd = 0;
+  var indexInd = 0;
   var n = 1;
+
+  var textureWidth = 512;
+  var textureHeight = 512;
+  var tileU = 1 / textureWidth;
+  var tileV = 1 / textureHeight;
+  var tileSize = 32;
+  var tilesX = textureWidth / tileSize;
 
   // get block from map data
   function get(x, y, z) {
@@ -76,6 +110,8 @@ function tesselate(data, xn, yn, zn, pos, texcoord) {
                     x1, y1, z1,
                     x2, y2, z2,
                     x3, y3, z3, v) {
+    var startIndex = indexInd;
+
     pos[posInd++] = x0;
     pos[posInd++] = y0;
     pos[posInd++] = z0;
@@ -92,21 +128,15 @@ function tesselate(data, xn, yn, zn, pos, texcoord) {
     pos[posInd++] = y3;
     pos[posInd++] = z3;
 
-    texcoord[texInd++] = 0;
-    texcoord[texInd++] = 0;
-    texcoord[texInd++] = value;
+    indices[indexInd++] = startIndex;
+    indices[indexInd++] = startIndex + 1;
+    indices[indexInd++] = startIndex + 2;
 
-    texcoord[texInd++] = 1;
-    texcoord[texInd++] = 0;
-    texcoord[texInd++] = value;
-
-    texcoord[texInd++] = 1;
-    texcoord[texInd++] = 1;
-    texcoord[texInd++] = value;
-
-    texcoord[texInd++] = 0;
-    texcoord[texInd++] = 1;
-    texcoord[texInd++] = value;
+    indices[indexInd++] = startIndex;
+    indices[indexInd++] = startIndex + 2;
+    indices[indexInd++] = startIndex + 3;
+  
+    texInd = texCoordFromId(value, tielsX, tileU, tileV, texcoord, texInd);
   }
 
   for (var z = 0; z < zn; z++) {
