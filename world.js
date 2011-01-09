@@ -30,7 +30,7 @@ function World(elem, vshader, fshader, fps) {
     return false;
   }
 
-  var terrainTexture = getTexture(gl, 'smoothstone');
+  var terrainTexture = getTexture(gl, 'terrain');
   this.terrain = new BlockTerrain(terrainTexture);
 
   gl.debugTexture = loadImageTexture(gl, "img/debug.png");
@@ -97,7 +97,7 @@ function initTestWorld(world) {
     new BobbingController(terrainNode, 0.2, 0.01, 2);
 
   world.scene.attachController(bobbingController);
-  //world.scene.attachController(terrainBobbingController);
+  world.scene.attachController(terrainBobbingController);
 }
 
 //===----------------------------------------------------------------------===//

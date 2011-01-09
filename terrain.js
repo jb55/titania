@@ -30,17 +30,15 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
 
   var numCubes = zn*yn*xn;
   var numSides = 6;
-  var vertPerSide = 4;
+  var vertPerSide = 6;
   var vertPerCube = numCubes * numSides * vertPerSide;
 
   var verts = new Float32Array(vertPerCube * 3);
   var normals = new Float32Array(vertPerCube * 3);
   var texCoords = new Float32Array(vertPerCube * 2);
-  var indices = new Uint16Array(vertPerCube);
 
-  var numElements = 
-    tesselate(data, xn, yn, zn, verts, texCoords, indices, normals);
-  this.vbo = new VBO(gl, verts, texCoords, indices, normals, numElements);
+  var numElements = tesselate(data, xn, yn, zn, verts, texCoords, normals);
+  this.vbo = new VBO(gl, verts, texCoords, normals, null, numElements);
 }
 
 function clamp(n, size) {
@@ -77,22 +75,17 @@ function texCoordFromId(id, xn, u, v, dest, ind) {
 BlockTerrain.prototype.render = function(gl) {
   gl.bindTexture(gl.TEXTURE_2D, this.texture);
   this.vbo.bind(gl);
-  this.vbo.render(gl, gl.TRIANGLES, gl.UNSIGNED_SHORT);
-}
-
-function buildGrid(data, xn, yn, zn, erts, texCoords, normals) {
+  this.vbo.render(gl, gl.TRIANGLES);
 }
 
 //===----------------------------------------------------------------------===//
 // tesselate
 //===----------------------------------------------------------------------===//
-function tesselate(data, xn, yn, zn, pos, texcoord, indices, normals) {
+function tesselate(data, xn, yn, zn, pos, texcoord, normals) {
   var value;
   var posInd = 0;
   var normalsInd = 0;
   var texInd = 0;
-  var indexInd = 0;
-  var startIndex = 0;
   var n = 0.5;
 
   var textureWidth = 512;
@@ -113,60 +106,42 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices, normals) {
                     x3, y3, z3, v,
                     nx, ny, nz) {
 
-    pos[posInd++] = x0;
-    pos[posInd++] = y0;
-    pos[posInd++] = z0;
+    pos[posInd++] = x0; pos[posInd++] = y0; pos[posInd++] = z0;
+    pos[posInd++] = x1; pos[posInd++] = y1; pos[posInd++] = z1;
+    pos[posInd++] = x3; pos[posInd++] = y3; pos[posInd++] = z3;
 
-    pos[posInd++] = x1;
-    pos[posInd++] = y1;
-    pos[posInd++] = z1;
+    pos[posInd++] = x1; pos[posInd++] = y1; pos[posInd++] = z1;
+    pos[posInd++] = x2; pos[posInd++] = y2; pos[posInd++] = z2;
+    pos[posInd++] = x3; pos[posInd++] = y3; pos[posInd++] = z3;
 
-    pos[posInd++] = x2;
-    pos[posInd++] = y2;
-    pos[posInd++] = z2;
+    for (var i = 0; i < 6; ++i) {
+      normals[normalsInd++] = nx;
+      normals[normalsInd++] = ny;
+      normals[normalsInd++] = nz;
+    }
 
-    pos[posInd++] = x3;
-    pos[posInd++] = y3;
-    pos[posInd++] = z3;
+    var uv = 1/512;
 
-    normals[normalsInd++] = nx;
-    normals[normalsInd++] = ny;
-    normals[normalsInd++] = nz;
+    var s = 0;
+    var t = 1;
 
-    normals[normalsInd++] = nx;
-    normals[normalsInd++] = ny;
-    normals[normalsInd++] = nz;
-
-    normals[normalsInd++] = nx;
-    normals[normalsInd++] = ny;
-    normals[normalsInd++] = nz;
-
-    normals[normalsInd++] = nx;
-    normals[normalsInd++] = ny;
-    normals[normalsInd++] = nz;
-
-    indices[indexInd++] = startIndex;
-    indices[indexInd++] = startIndex + 1;
-    indices[indexInd++] = startIndex + 2;
-
-    indices[indexInd++] = startIndex;
-    indices[indexInd++] = startIndex + 2;
-    indices[indexInd++] = startIndex + 3;
-
-    startIndex += 4;
-
-    texcoord[texInd++] = 0;
-    texcoord[texInd++] = 0;
+    texcoord[texInd++] = s; // v0 (0, 0)
+    texcoord[texInd++] = s;
   
-    texcoord[texInd++] = 1;
-    texcoord[texInd++] = 0;
-  
-    texcoord[texInd++] = 1;
-    texcoord[texInd++] = 1;
-  
-    texcoord[texInd++] = 0;
-    texcoord[texInd++] = 1;
+    texcoord[texInd++] = t; // v1 (1, 0)
+    texcoord[texInd++] = s;
 
+    texcoord[texInd++] = s; // v3 (0, 1)
+    texcoord[texInd++] = t;
+  
+    texcoord[texInd++] = t; // v1 (1, 0)
+    texcoord[texInd++] = s;
+
+    texcoord[texInd++] = t; // v2 (1, 1)
+    texcoord[texInd++] = t;
+  
+    texcoord[texInd++] = s; // v3 (0, 1)
+    texcoord[texInd++] = t;
   
   }
 
@@ -238,5 +213,5 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices, normals) {
     }
   }
 
-  return indexInd;
+  return posInd;
 }

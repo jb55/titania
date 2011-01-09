@@ -1,5 +1,5 @@
 
-function VBO(gl, vertices, texCoords, indices, normals, numElements) {
+function VBO(gl, vertices, texCoords, normals, indices, numElements) {
 
   if (normals) {
     this.normalBuffer = gl.createBuffer();
@@ -62,6 +62,6 @@ VBO.prototype.render = function(gl, kind, indexBufferKind) {
   if (this.indexBuffer) {
     gl.drawElements(kind, this.numElements, indexBufferKind || gl.UNSIGNED_BYTE, 0);
   } else {
-    gl.drawArrays(kind, 0, this.numElements);
+    gl.drawArrays(kind, 0, this.numElements / 3);
   }
 }
