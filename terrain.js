@@ -90,9 +90,9 @@ function tesselate(data, xn, yn, zn, pos, texcoord, normals) {
 
   var textureWidth = 512;
   var textureHeight = 512;
-  var tileU = 1 / textureWidth;
-  var tileV = 1 / textureHeight;
   var tileSize = 32;
+  var tileU = 1 / (textureWidth / tileSize);
+  var tileV = 1 / (textureHeight / tileSize);
   var tilesX = textureWidth / tileSize;
 
   // get block from map data
@@ -120,27 +120,31 @@ function tesselate(data, xn, yn, zn, pos, texcoord, normals) {
       normals[normalsInd++] = nz;
     }
 
-    var uv = 1/512;
+    var uv = (1/32)*2;
 
     var s = 0;
-    var t = 1;
+    var t = 1.0;
 
-    texcoord[texInd++] = s; // v0 (0, 0)
-    texcoord[texInd++] = s;
+    var id = 3;
+    var u = uv * id;
+    var v = t - uv;
+
+    texcoord[texInd++] = u; // v0 (0, 0)
+    texcoord[texInd++] = v;
   
-    texcoord[texInd++] = t; // v1 (1, 0)
-    texcoord[texInd++] = s;
+    texcoord[texInd++] = u + uv; // v1 (1, 0)
+    texcoord[texInd++] = v;
 
-    texcoord[texInd++] = s; // v3 (0, 1)
+    texcoord[texInd++] = u; // v3 (0, 1)
     texcoord[texInd++] = t;
   
-    texcoord[texInd++] = t; // v1 (1, 0)
-    texcoord[texInd++] = s;
+    texcoord[texInd++] = u + uv; // v1 (1, 0)
+    texcoord[texInd++] = v;
 
-    texcoord[texInd++] = t; // v2 (1, 1)
+    texcoord[texInd++] = u + uv; // v2 (1, 1)
     texcoord[texInd++] = t;
   
-    texcoord[texInd++] = s; // v3 (0, 1)
+    texcoord[texInd++] = u; // v3 (0, 1)
     texcoord[texInd++] = t;
   
   }
