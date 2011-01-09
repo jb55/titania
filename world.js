@@ -97,7 +97,7 @@ function initTestWorld(world) {
     new BobbingController(terrainNode, 0.2, 0.01, 2);
 
   world.scene.attachController(bobbingController);
-  world.scene.attachController(terrainBobbingController);
+  //world.scene.attachController(terrainBobbingController);
 }
 
 //===----------------------------------------------------------------------===//
