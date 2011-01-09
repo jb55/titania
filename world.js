@@ -2,7 +2,7 @@
 //===----------------------------------------------------------------------===//
 // World
 //===----------------------------------------------------------------------===//
-function World(elem, vshader, fshader) {
+function World(elem, vshader, fshader, fps) {
   this.width = window.innerWidth * 0.9;
   this.height = window.innerHeight * 0.9;
   this.block_size = 32;
@@ -42,11 +42,13 @@ function World(elem, vshader, fshader) {
   this.setupRenderer(gl);
 
   var self = this;
+  var framerate = new Framerate(fps);
   this.preload(this.gl, function() {
     (function loop() {
       WebGLUtils.requestAnimationFrame(canvas, loop);
       self.update();
       self.render();
+      framerate.snapshot();
     })();
   });
 
@@ -95,7 +97,7 @@ function initTestWorld(world) {
     new BobbingController(terrainNode, 0.2, 0.01, 2);
 
   world.scene.attachController(bobbingController);
-  world.scene.attachController(terrainBobbingController);
+  //world.scene.attachController(terrainBobbingController);
 }
 
 //===----------------------------------------------------------------------===//
