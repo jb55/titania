@@ -12,8 +12,6 @@ function World(elem, vshader, fshader) {
   this.entities = [];
   this.input = new Input();
   this.scene = new Scene();
-  this.terrain = new BlockTerrain();
-
   var canvas = document.getElementById(elem);
   canvas.width = this.width;
   canvas.height = this.height;
@@ -31,6 +29,9 @@ function World(elem, vshader, fshader) {
     // couldn't load WebGL
     return false;
   }
+
+  var terrainTexture = getTexture(gl, 'smoothstone');
+  this.terrain = new BlockTerrain(terrainTexture);
 
   gl.debugTexture = loadImageTexture(gl, "img/debug.png");
 
@@ -60,11 +61,17 @@ function initTestWorld(world) {
   var gl = world.gl;
   world.map = test_map;
   world.terrain.loadMap(gl, world.map);
-  world.terrain.vbo.bind(gl);
 
+  // our root scene node
   var rootNode = world.scene.getRootNode();
-  var playerNode = new SceneNode();
 
+  // attach terrain to root scene node
+  var terrainNode = new SceneNode();
+  terrainNode.attachObject(world.terrain);
+  rootNode.attachObject(terrainNode);
+
+  // attach the player to the root scene node
+  var playerNode = new SceneNode();
   rootNode.attachObject(playerNode);
   var player = world.player = createPlayer(gl, playerNode);
   world.entities.push(player);
@@ -84,7 +91,11 @@ function initTestWorld(world) {
   var bobbingController = 
     new BobbingController(playerNode, 0.1, 0.01, 2);
 
+  var terrainBobbingController =
+    new BobbingController(terrainNode, 0.2, 0.01, 2);
+
   world.scene.attachController(bobbingController);
+  world.scene.attachController(terrainBobbingController);
 }
 
 //===----------------------------------------------------------------------===//
@@ -173,8 +184,7 @@ World.prototype.render = function() {
   // Clear the canvas
   this.clear(gl);
 
-  this.terrain.vbo.render(gl, gl.QUADS);
-  //this.scene.render(gl, this.camera);
+  this.scene.render(gl, this.camera);
 
   // Finish up.
   gl.flush();
@@ -345,7 +355,7 @@ World.prototype.setupRenderer = function(gl) {
   mat4.rotate(iso, (Math.PI/180)*90, [0, 0, 1]);
   mat4.rotate(iso, (Math.PI/180)*35.264, [0, 1, 0]);
   mat4.rotate(iso, (Math.PI/180)*45, [0, 0, 1]);
-  mat4.translate(iso, [-20, -15, 0]);
+  mat4.translate(iso, [-15, -10, 0]);
   mat4.scale(iso, [1, 1, 1.2]);
   var ortho = mat4.ortho(size, -size, -size*0.6, size*0.6, -40, 100);
   mat4.multiply(ortho, iso, gl.projectionMatrix);

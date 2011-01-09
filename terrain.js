@@ -9,10 +9,8 @@
 //===----------------------------------------------------------------------===//
 // BlockTerrain
 //===----------------------------------------------------------------------===//
-function BlockTerrain(xn, yn, zn) {
-  this.xn = xn;
-  this.yn = yn;
-  this.zn = zn;
+function BlockTerrain(texture) {
+  this.texture = texture;
 }
 
 //===----------------------------------------------------------------------===//
@@ -31,19 +29,18 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
   this.zn = zn;
 
   var numCubes = zn*yn*xn;
+  var numSides = 6;
   var vertPerSide = 4;
+  var vertPerCube = numCubes * numSides * vertPerSide;
 
-  var verts = new Float32Array(numCubes * vertPerSide * 3);
-  var texCoords = new Float32Array(numCubes * vertPerSide * 2);
-  var indices = new Uint8Array(numCubes * vertPerSide);
+  var verts = new Float32Array(vertPerCube * 3);
+  var normals = new Float32Array(vertPerCube * 3);
+  var texCoords = new Float32Array(vertPerCube * 2);
+  var indices = new Uint8Array(vertPerCube);
 
-  tesselate(data, xn, yn, zn, verts, texCoords, indices);
-  this.vbo = new VBO(gl, pos, texCoords, indices);
-
-//var normal = new Float32Array(size);
-//var s = new Float32Array(size);
-//var t = new Float32Array(size);
-  
+  var numElements = 
+    tesselate(data, xn, yn, zn, verts, texCoords, indices, normals);
+  this.vbo = new VBO(gl, verts, texCoords, indices, normals, numElements);
 }
 
 function clamp(n, size) {
@@ -77,22 +74,26 @@ function texCoordFromId(id, xn, u, v, dest, ind) {
   return ind;
 }
 
-function drawTerrain(gl, terrain) {
-  
+BlockTerrain.prototype.render = function(gl) {
+  gl.bindTexture(gl.TEXTURE_2D, this.texture);
+  this.vbo.bind(gl);
+  this.vbo.render(gl, gl.TRIANGLES);
 }
 
-function buildGrid(data, xn, yn, zn, verts, texCoords, normals) {
+function buildGrid(data, xn, yn, zn, erts, texCoords, normals) {
 }
 
 //===----------------------------------------------------------------------===//
 // tesselate
 //===----------------------------------------------------------------------===//
-function tesselate(data, xn, yn, zn, pos, texcoord, indices) {
+function tesselate(data, xn, yn, zn, pos, texcoord, indices, normals) {
   var value;
   var posInd = 0;
+  var normalsInd = 0;
   var texInd = 0;
   var indexInd = 0;
-  var n = 1;
+  var startIndex = 0;
+  var n = 0.5;
 
   var textureWidth = 512;
   var textureHeight = 512;
@@ -109,8 +110,8 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices) {
   function set_data(x0, y0, z0,
                     x1, y1, z1,
                     x2, y2, z2,
-                    x3, y3, z3, v) {
-    var startIndex = indexInd;
+                    x3, y3, z3, v,
+                    nx, ny, nz) {
 
     pos[posInd++] = x0;
     pos[posInd++] = y0;
@@ -128,6 +129,22 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices) {
     pos[posInd++] = y3;
     pos[posInd++] = z3;
 
+    normals[normalsInd++] = nx;
+    normals[normalsInd++] = ny;
+    normals[normalsInd++] = nz;
+
+    normals[normalsInd++] = nx;
+    normals[normalsInd++] = ny;
+    normals[normalsInd++] = nz;
+
+    normals[normalsInd++] = nx;
+    normals[normalsInd++] = ny;
+    normals[normalsInd++] = nz;
+
+    normals[normalsInd++] = nx;
+    normals[normalsInd++] = ny;
+    normals[normalsInd++] = nz;
+
     indices[indexInd++] = startIndex;
     indices[indexInd++] = startIndex + 1;
     indices[indexInd++] = startIndex + 2;
@@ -135,8 +152,21 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices) {
     indices[indexInd++] = startIndex;
     indices[indexInd++] = startIndex + 2;
     indices[indexInd++] = startIndex + 3;
+
+    startIndex += 4;
+
+    texcoord[texInd++] = 0;
+    texcoord[texInd++] = 0;
   
-    texInd = texCoordFromId(value, tielsX, tileU, tileV, texcoord, texInd);
+    texcoord[texInd++] = 1;
+    texcoord[texInd++] = 0;
+  
+    texcoord[texInd++] = 1;
+    texcoord[texInd++] = 1;
+  
+    texcoord[texInd++] = 0;
+    texcoord[texInd++] = 1;
+  
   }
 
   for (var z = 0; z < zn; z++) {
@@ -149,7 +179,8 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices) {
           set_data(x-n, y-n, z-n,
                    x-n, y+n, z-n,
                    x-n, y+n, z+n,
-                   x-n, y-n, z+n, value);
+                   x-n, y-n, z+n, value,
+                   1, 0, 0);
         }
 
         // right
@@ -158,7 +189,8 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices) {
           set_data(x+n, y-n, z-n,
                    x+n, y-n, z+n,
                    x+n, y+n, z+n,
-                   x+n, y+n, z-n, value);
+                   x+n, y+n, z-n, value,
+                   -1, 0, 0);
         }
 
         value = get(x, y-1, z);
@@ -167,7 +199,8 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices) {
           set_data(x-n, y-n, z-n,
                    x-n, y-n, z+n,
                    x+n, y-n, z+n,
-                   x+n, y-n, z-n, value);
+                   x+n, y-n, z-n, value,
+                   0, 1, 0);
         }
 
         value = get(x, y+1, z);
@@ -175,7 +208,8 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices) {
           set_data(x-n, y+n, z-n,
                    x+n, y+n, z-n,
                    x+n, y+n, z+n,
-                   x-n, y+n, z+n, value);
+                   x-n, y+n, z+n, value,
+                   0, -1, 0);
         }
 
         // bottom
@@ -184,7 +218,8 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices) {
           set_data(x-n, y-n, z-n,
                    x+n, y-n, z-n,
                    x+n, y+n, z-n,
-                   x-n, y+n, z-n, value);
+                   x-n, y+n, z-n, value,
+                   0, 0, 1);
         }
 
         // top
@@ -193,11 +228,14 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices) {
           set_data(x-n, y-n, z+n,
                    x-n, y+n, z+n,
                    x+n, y+n, z+n,
-                   x+n, y-n, z+n, value);
+                   x+n, y-n, z+n, value,
+                   0, 0, -1);
         }
 
 
       }
     }
   }
+
+  return indexInd;
 }

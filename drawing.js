@@ -1,5 +1,5 @@
 
-function VBO(gl, vertices, texCoords, indices, normals) {
+function VBO(gl, vertices, texCoords, indices, normals, numElements) {
 
   if (normals) {
     this.normalBuffer = gl.createBuffer();
@@ -25,9 +25,9 @@ function VBO(gl, vertices, texCoords, indices, normals) {
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
-    this.numElements = indices.length;
+    this.numElements = numElements || indices.length;
   } else {
-    this.numElements = vertices.length;
+    this.numElements = numElements || vertices.length;
   }
   
 
@@ -51,12 +51,16 @@ VBO.prototype.bind = function(gl) {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
     gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
   }
+  
+  if (this.indexBuffer) {
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+  }
 
 }
 
 VBO.prototype.render = function(gl, kind) {
   if (this.indexBuffer) {
-    gl.drawElements(gl.TRIANGLES, this.numElements, gl.UNSIGNED_BYTE, 0);
+    gl.drawElements(kind, this.numElements, gl.UNSIGNED_BYTE, 0);
   } else {
     gl.drawArrays(kind, 0, this.numElements);
   }
