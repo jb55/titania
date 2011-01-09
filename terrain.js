@@ -54,19 +54,25 @@ function clamp(n, size) {
 function texCoordFromId(id, xn, u, v, dest, ind) {
   var lu = (id % xn) * u;
   var ru = lu + u;
-  var tv = (Math.floor(id / xn) * v) + v;
+  var tv = 1.0 - ((Math.floor(id / xn) * v) + v);
   var bv = tv + v;
 
-  dest[ind++] = lu;
+  dest[ind++] = lu; // v0
   dest[ind++] = bv;
 
-  dest[ind++] = ru;
+  dest[ind++] = ru; // v1
   dest[ind++] = bv;
 
-  dest[ind++] = ru;
+  dest[ind++] = lu; // v3
   dest[ind++] = tv;
 
-  dest[ind++] = lu;
+  dest[ind++] = ru; // v1
+  dest[ind++] = bv;
+
+  dest[ind++] = ru; // v2
+  dest[ind++] = tv;
+
+  dest[ind++] = lu; // v3
   dest[ind++] = tv;
 
   return ind;
@@ -91,9 +97,10 @@ function tesselate(data, xn, yn, zn, pos, texcoord, normals) {
   var textureWidth = 512;
   var textureHeight = 512;
   var tileSize = 32;
-  var tileU = 1 / (textureWidth / tileSize);
-  var tileV = 1 / (textureHeight / tileSize);
   var tilesX = textureWidth / tileSize;
+  var tilesY = textureHeight / tileSize;
+  var tileU = 1 / tilesX;
+  var tileV = 1 / tilesY;
 
   // get block from map data
   function get(x, y, z) {
@@ -120,33 +127,8 @@ function tesselate(data, xn, yn, zn, pos, texcoord, normals) {
       normals[normalsInd++] = nz;
     }
 
-    var uv = (1/32)*2;
+    texInd = texCoordFromId(v-1, tilesX, tileU, tileV, texcoord, texInd);
 
-    var s = 0;
-    var t = 1.0;
-
-    var id = 3;
-    var u = uv * id;
-    var v = t - uv;
-
-    texcoord[texInd++] = u; // v0 (0, 0)
-    texcoord[texInd++] = v;
-  
-    texcoord[texInd++] = u + uv; // v1 (1, 0)
-    texcoord[texInd++] = v;
-
-    texcoord[texInd++] = u; // v3 (0, 1)
-    texcoord[texInd++] = t;
-  
-    texcoord[texInd++] = u + uv; // v1 (1, 0)
-    texcoord[texInd++] = v;
-
-    texcoord[texInd++] = u + uv; // v2 (1, 1)
-    texcoord[texInd++] = t;
-  
-    texcoord[texInd++] = u; // v3 (0, 1)
-    texcoord[texInd++] = t;
-  
   }
 
   for (var z = 0; z < zn; z++) {
