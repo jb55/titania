@@ -350,7 +350,7 @@ World.prototype.setupRenderer = function(gl) {
   gl.enable(gl.CULL_FACE);
   gl.enable(gl.TEXTURE_2D);
 
-  gl.cullFace(gl.BACK);
+  gl.cullFace(gl.FRONT);
 
   var size = 23;
   gl.viewport(0, 0, this.width, this.height);

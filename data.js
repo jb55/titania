@@ -86,5 +86,5 @@ var test_map3 = [
  ,[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 ];
 
-//var test_map = [test_map1, test_map2, test_map3, test_map3];
-var test_map = [test_map1, test_map1, test_map1, test_map1, test_map1, test_map1, test_map2, test_map1];
+var test_map = [test_map1, test_map2, test_map3, test_map3];
+//var test_map = [test_map1, test_map1, test_map1, test_map1, test_map1, test_map1, test_map2, test_map1];
