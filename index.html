@@ -60,10 +60,11 @@
 <body>
     <div id="container">
       <canvas id="game"></canvas>
+      <p id="fps"></p>
     </div>
   <script type="text/javascript">
     (function() {
-      var world = new World("game", "vshader", "fshader");
+      var world = new World("game", "vshader", "fshader", "fps");
     })();
   </script>
 </html>
