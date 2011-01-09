@@ -41,6 +41,8 @@ function World(elem, vshader, fshader, fps) {
   this.box = makeBox(gl);
   this.setupRenderer(gl);
 
+  this.terrain.vbo.bind(gl);
+
   var self = this;
   var framerate = new Framerate(fps);
   this.preload(this.gl, function() {
@@ -97,7 +99,7 @@ function initTestWorld(world) {
     new BobbingController(terrainNode, 0.2, 0.01, 2);
 
   world.scene.attachController(bobbingController);
-  //world.scene.attachController(terrainBobbingController);
+  world.scene.attachController(terrainBobbingController);
 }
 
 //===----------------------------------------------------------------------===//
@@ -345,7 +347,10 @@ World.prototype.setupRenderer = function(gl) {
   gl.uniform3f(gl.getUniformLocation(gl.program, "lightDir"), 0, 1, 0.8);
   gl.uniform1i(gl.getUniformLocation(gl.program, "sampler2d"), 0);
 
+  gl.enable(gl.CULL_FACE);
   gl.enable(gl.TEXTURE_2D);
+
+  gl.cullFace(gl.BACK);
 
   var size = 23;
   gl.viewport(0, 0, this.width, this.height);

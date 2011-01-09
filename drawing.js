@@ -58,9 +58,10 @@ VBO.prototype.bind = function(gl) {
 
 }
 
-VBO.prototype.render = function(gl, kind, indexBufferKind) {
+VBO.prototype.render = function(gl, kind, indexBufferType) {
   if (this.indexBuffer) {
-    gl.drawElements(kind, this.numElements, indexBufferKind || gl.UNSIGNED_BYTE, 0);
+    gl.drawElements(kind, this.numElements, 
+                    indexBufferType || gl.UNSIGNED_BYTE, 0);
   } else {
     gl.drawArrays(kind, 0, this.numElements / 3);
   }
