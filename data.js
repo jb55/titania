@@ -3,11 +3,11 @@
 // Data
 //===----------------------------------------------------------------------===//
 BLOCKS = [
-   { name: 'air', transparent: true }
-  ,{ name: 'grass', side: true }
-  ,{ name: 'smoothstone', clip: true}
-  ,{ name: 'dirt' }
-  ,{ name: 'stone' }
+   { name: 'air', transparent: true, texid: -1 }
+  ,{ name: 'grass', texid: 0 }
+  ,{ name: 'smoothstone', clip: true, texid: 6 }
+  ,{ name: 'dirt', texid: 2 }
+  ,{ name: 'stone', texid: 1 }
 ];
 
 OBJECTS = [

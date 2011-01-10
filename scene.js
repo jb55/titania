@@ -39,8 +39,7 @@ SceneNode.queueUpdate = function(node) {
 SceneNode.prototype.update = function() {
   var parent = this.parent;
   if (parent && parent.needsUpdate()) {
-    // this should never happen, parents are always pushed on first
-    throw "SceneNode's parent should have needed an update";
+    parent.update();
   }
 
   var relative = this.relativeTransform;

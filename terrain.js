@@ -131,7 +131,7 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices, normals) {
       normals[normalsInd++] = nz;
     }
 
-    texInd = texCoordFromId(v-1, tilesX, tileU, tileV, texcoord, texInd);
+    texInd = texCoordFromId(BLOCKS[v].texid, tilesX, tileU, tileV, texcoord, texInd);
 
   }
 
@@ -178,7 +178,6 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices, normals) {
                    0, -1, 0);
         }
 
-        // bottom
         value = get(x, y, z-1);
         if (value > 0) {
           set_data(x-n, y-n, z-n,
@@ -188,14 +187,13 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices, normals) {
                    0, 0, 1);
         }
 
-        // top
-        value = get(x, y, z-1);
+        value = get(x, y, z+1);
         if (value > 0) {
           set_data(x-n, y-n, z+n,
                    x-n, y+n, z+n,
                    x+n, y+n, z+n,
                    x+n, y-n, z+n, value,
-                   0, 0, -1);
+                   0, 0, 1);
         }
 
 

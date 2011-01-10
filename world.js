@@ -76,7 +76,7 @@ function initTestWorld(world) {
 
   // attach the player to the root scene node
   var playerNode = new SceneNode();
-  rootNode.attachObject(playerNode);
+  terrainNode.attachObject(playerNode);
   var player = world.player = createPlayer(gl, playerNode);
   world.entities.push(player);
 
@@ -89,17 +89,17 @@ function initTestWorld(world) {
   player.orientation_controller = 
     new FacingController(playerNode);
 
+  var terrainBobbingController =
+    new BobbingController(terrainNode, 0.2, 0.01, 2);
+
+  //world.scene.attachController(terrainBobbingController);
+
   player.movement_controller = 
     new InputController(playerNode, 0.12, world.input);
 
   var bobbingController = 
     new BobbingController(playerNode, 0.1, 0.01, 2);
 
-  var terrainBobbingController =
-    new BobbingController(terrainNode, 0.2, 0.01, 2);
-
-  world.scene.attachController(bobbingController);
-  world.scene.attachController(terrainBobbingController);
 }
 
 //===----------------------------------------------------------------------===//
@@ -344,13 +344,13 @@ function setUniform(gl, loc, m) {
 //===----------------------------------------------------------------------===//
 World.prototype.setupRenderer = function(gl) {
   // Set some uniform variables for the shaders
-  gl.uniform3f(gl.getUniformLocation(gl.program, "lightDir"), 0, 1, 0.8);
+  gl.uniform3f(gl.getUniformLocation(gl.program, "lightDir"), 1, 1, 0.8);
   gl.uniform1i(gl.getUniformLocation(gl.program, "sampler2d"), 0);
 
-  gl.enable(gl.CULL_FACE);
+  //gl.enable(gl.CULL_FACE);
   gl.enable(gl.TEXTURE_2D);
 
-  gl.cullFace(gl.FRONT);
+  //gl.cullFace(gl.FRONT);
 
   var size = 23;
   gl.viewport(0, 0, this.width, this.height);
@@ -385,16 +385,4 @@ World.prototype.setupRenderer = function(gl) {
   gl.enableVertexAttribArray(1);
   gl.enableVertexAttribArray(2);
 
-  // Set up all the vertex attributes for vertices, normals and texCoords
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.box.vertexBuffer);
-  gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 0, 0);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.box.normalBuffer);
-  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.box.texCoordBuffer);
-  gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
-
-  // Bind the index array
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.box.indexBuffer);
 };
