@@ -402,6 +402,9 @@ World.prototype.setupRenderer = function(gl) {
   gl.uniform3f(gl.getUniformLocation(gl.program, "lightDir"), 0, 1, 0.8);
   gl.uniform1i(gl.getUniformLocation(gl.program, "sampler2d"), 0);
 
+  gl.enable(gl.CULL_FACE);
+  gl.cullFace(gl.FRONT);
+
   gl.enable(gl.TEXTURE_2D);
 
   var size = 23;
