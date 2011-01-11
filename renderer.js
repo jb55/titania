@@ -36,6 +36,9 @@ function getCubeMesh(gl) {
 }
 
 
+//===----------------------------------------------------------------------===//
+// getCubeRenderable
+//===----------------------------------------------------------------------===//
 function getCubeRenderable(gl) {
   var renderable = new Renderable();
   renderable.mesh = getCubeMesh(gl);

@@ -76,7 +76,7 @@ function texCoordFromId(id, xn, u, v, dest, ind) {
 
 BlockTerrain.prototype.render = function(gl) {
   gl.bindTexture(gl.TEXTURE_2D, this.texture);
-  //this.vbo.bind(gl);
+  this.vbo.bind(gl);
   this.vbo.render(gl, gl.TRIANGLES, gl.UNSIGNED_SHORT);
 }
 
