@@ -1,4 +1,7 @@
 
+//===----------------------------------------------------------------------===//
+// VBO
+//===----------------------------------------------------------------------===//
 function VBO(gl, vertices, texCoords, normals, indices, numElements) {
 
   if (normals) {
@@ -33,6 +36,9 @@ function VBO(gl, vertices, texCoords, normals, indices, numElements) {
 
 }
 
+//===----------------------------------------------------------------------===//
+// VBO.bind
+//===----------------------------------------------------------------------===//
 VBO.prototype.bind = function(gl) {
   gl.enableVertexAttribArray(2);
 
@@ -58,6 +64,9 @@ VBO.prototype.bind = function(gl) {
 
 }
 
+//===----------------------------------------------------------------------===//
+// VBO.render
+//===----------------------------------------------------------------------===//
 VBO.prototype.render = function(gl, kind, indexBufferType) {
   if (this.indexBuffer) {
     gl.drawElements(kind, this.numElements, 
@@ -65,4 +74,22 @@ VBO.prototype.render = function(gl, kind, indexBufferType) {
   } else {
     gl.drawArrays(kind, 0, this.numElements / 3);
   }
+}
+
+function updateBuffer(gl, bufferType, buffer, offset, data, usage) {
+  var needsRealloc = data.length + offset > buffer.length;
+
+  gl.bindBuffer(bufferType, buffer);
+
+  // Send a hint to the driver to not reallocate if we dont need to
+  if (!needsRealloc)
+    gl.bufferData(bufferType, null, usage || gl.DYNAMIC_DRAW);
+
+  if (offset > 0) {
+  }
+  
+}
+
+
+VBO.prototype.updateIBO = function(gl, offset, data) {
 }
