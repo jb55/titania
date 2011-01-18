@@ -109,7 +109,7 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices, normals) {
                     x1, y1, z1,
                     x2, y2, z2,
                     x3, y3, z3, v,
-                    nx, ny, nz) {
+                    nx, ny, nz, isSide) {
 
     pos[posInd++] = x0; pos[posInd++] = y0; pos[posInd++] = z0;
     pos[posInd++] = x1; pos[posInd++] = y1; pos[posInd++] = z1;
@@ -132,13 +132,19 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices, normals) {
       normals[normalsInd++] = nz;
     }
 
-    texInd = texCoordFromId(BLOCKS[v].texid, tilesX, tileU, tileV, texcoord, texInd);
+    var texId = isSide ? BLOCKS[v].sideTex : BLOCKS[v].texid;
+    texInd = texCoordFromId(texId, tilesX, tileU, tileV, texcoord, texInd);
 
+  }
+
+  function isSide(v) {
+      return 'sideTex' in BLOCKS[v];
   }
 
   for (var z = 0; z < zn; z++) {
     for (var y = 0; y < yn; y++) {
       for (var x = 0; x < xn; x++) {
+
 
         // left
         value = get(x-1, y, z);
@@ -147,7 +153,7 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices, normals) {
                    x-n, y+n, z-n,
                    x-n, y+n, z+n,
                    x-n, y-n, z+n, value,
-                   1, 0, 0);
+                   1, 0, 0, isSide(value));
         }
 
         // right
@@ -157,17 +163,16 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices, normals) {
                    x+n, y-n, z+n,
                    x+n, y+n, z+n,
                    x+n, y+n, z-n, value,
-                   -1, 0, 0);
+                   -1, 0, 0, isSide(value));
         }
 
         value = get(x, y-1, z);
-        // if value == dirt, value = grass
         if (value > 0) {
           set_data(x-n, y-n, z-n,
                    x-n, y-n, z+n,
                    x+n, y-n, z+n,
                    x+n, y-n, z-n, value,
-                   0, 1, 0);
+                   0, 1, 0, isSide(value));
         }
 
         value = get(x, y+1, z);
@@ -176,7 +181,7 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices, normals) {
                    x+n, y+n, z-n,
                    x+n, y+n, z+n,
                    x-n, y+n, z+n, value,
-                   0, -1, 0);
+                   0, -1, 0, isSide(value));
         }
 
         value = get(x, y, z-1);

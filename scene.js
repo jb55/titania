@@ -212,6 +212,7 @@ Scene.prototype.renderNode = function(gl, node, camera, m) {
   if (node.object && node.object.render) {
     mat4.multiply(camera, node.absoluteTransform, m);
     setProjectionUniform(gl, m);
+    calculateNormals(gl, m);
     node.object.render(gl);
   }
 

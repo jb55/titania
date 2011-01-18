@@ -80,6 +80,9 @@ function initTestWorld(world) {
   var player = world.player = createPlayer(gl, playerNode);
   world.entities.push(player);
 
+  //
+  terrainNode.translate([10, 5, 0]);
+
   // add eye camera
   //camera.sceneNode.setPosition([-player.head.size*4, 0, 0]);
   //player.head.sceneNode.attachObject(camera.sceneNode);
@@ -92,7 +95,7 @@ function initTestWorld(world) {
   var terrainBobbingController =
     new BobbingController(terrainNode, 0.2, 0.01, 2);
 
-  //world.scene.attachController(terrainBobbingController);
+  world.scene.attachController(terrainBobbingController);
 
   player.movement_controller = 
     new InputController(playerNode, 0.12, world.input);
@@ -277,10 +280,10 @@ World.prototype.renderEntities = function(gl) {
 //===----------------------------------------------------------------------===//
 // calculateNormals
 //===----------------------------------------------------------------------===//
-function calculateNormals(gl, dontSet) {
+function calculateNormals(gl, mvp) {
   // Construct the normal matrix from the model-view matrix and pass it
   // in
-  mat4.inverse(gl.mvMatrix, gl.normalMatrix);
+  mat4.inverse(mvp, gl.normalMatrix);
   mat4.transpose(gl.normalMatrix);
   setNormalsUniform(gl, gl.normalMatrix);
 }
@@ -344,7 +347,7 @@ function setUniform(gl, loc, m) {
 //===----------------------------------------------------------------------===//
 World.prototype.setupRenderer = function(gl) {
   // Set some uniform variables for the shaders
-  gl.uniform3f(gl.getUniformLocation(gl.program, "lightDir"), 1, 1, 0.8);
+  gl.uniform3f(gl.getUniformLocation(gl.program, "lightDir"), 0.5, 0.8, -0.2);
   gl.uniform1i(gl.getUniformLocation(gl.program, "sampler2d"), 0);
 
   //gl.enable(gl.CULL_FACE);
