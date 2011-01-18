@@ -59,17 +59,17 @@ function texCoordFromId(id, xn, u, v, dest, ind) {
   var tv = 1.0 - ((Math.floor(id / xn) * v) + v);
   var bv = tv + v;
 
-  dest[ind++] = lu; // v0
-  dest[ind++] = bv;
-
-  dest[ind++] = ru; // v1
-  dest[ind++] = bv;
+  dest[ind++] = lu; // v3
+  dest[ind++] = tv;
 
   dest[ind++] = ru; // v2
   dest[ind++] = tv;
 
-  dest[ind++] = lu; // v3
-  dest[ind++] = tv;
+  dest[ind++] = ru; // v1
+  dest[ind++] = bv;
+
+  dest[ind++] = lu; // v0
+  dest[ind++] = bv;
 
   return ind;
 }
