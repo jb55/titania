@@ -46,23 +46,14 @@
         float z = floor(vNormal.z < 0. ? vPosition.z + 1. : vPosition.z);
 
         vec2 sampleInd = vec2(x + (z * 32), y);
-        float id = texture2D(terrainSampler, sampleInd);
-      }
-
-      vec2 determineTexCoord(int id) {
-        float lu = (id % 16) * kTileU;
-        float ru = lu + kTileU;
-        float tv = 1.0 - ((floor(id / kTilesX) * kTileV) + kTileV);
-        float bv = tv + kTileV;
-
+        int id = (int)texture2D(terrainSampler, sampleInd);
       }
 
       void main() {
-        isVisible = vPosition.x > 4. ? 0. : 1.;
         gl_Position = u_mvpMatrix * vPosition;
 
-        int id = getIdFromPosition();
-        v_texCoord = determineTexCoord(id);
+        isVisible = getIdFromPosition() != 0;
+        v_texCoord = v_TexCoord.st;
 
         vec4 transNormal = u_normalMatrix * vec4(vNormal, 1) * 0.08;
         v_Dot = max(dot(transNormal.xyz, lightDir), 0.4);
