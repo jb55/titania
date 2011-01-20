@@ -19,21 +19,53 @@
   <script id="vshader" type="x-shader/x-vertex">
       uniform mat4 u_mvpMatrix;
       uniform mat4 u_normalMatrix;
+      uniform sampler2D terrainSampler;
       uniform vec3 lightDir;
 
       attribute vec3 vNormal;
-      attribute vec4 vTexCoord;
+      attribute vec2 vTexCoord;
       attribute vec4 vPosition;
 
       varying float v_Dot;
+      varying float isVisible;
       varying vec2 v_texCoord;
 
-      void main()
-      {
-          gl_Position = u_mvpMatrix * vPosition;
-          v_texCoord = vTexCoord.st;
-          vec4 transNormal = u_normalMatrix * vec4(vNormal, 1) * 0.08;
-          v_Dot = max(dot(transNormal.xyz, lightDir), 0.4);
+      // terrain texture settings
+      const float kTextureWidth = 512;
+      const float kTextureHeight = 512;
+      const float kTileSize = 32;
+      const float kTilesX = kTextureWidth / tileSize;
+      const float kTilesY = kTextureHeight / tileSize;
+      const float kTileU = 1 / kTilesX;
+      const float kTileV = 1 / kTilesY;
+
+      int getIdFromPosition() {
+        const float n = 0.5;
+        float x = floor(vNormal.x < 0. ? vPosition.x + 1. : vPosition.x);
+        float y = floor(vNormal.y < 0. ? vPosition.y + 1. : vPosition.y);
+        float z = floor(vNormal.z < 0. ? vPosition.z + 1. : vPosition.z);
+
+        vec2 sampleInd = vec2(x + (z * 32), y);
+        float id = texture2D(terrainSampler, sampleInd);
+      }
+
+      vec2 determineTexCoord(int id) {
+        float lu = (id % 16) * kTileU;
+        float ru = lu + kTileU;
+        float tv = 1.0 - ((floor(id / kTilesX) * kTileV) + kTileV);
+        float bv = tv + kTileV;
+
+      }
+
+      void main() {
+        isVisible = vPosition.x > 4. ? 0. : 1.;
+        gl_Position = u_mvpMatrix * vPosition;
+
+        int id = getIdFromPosition();
+        v_texCoord = determineTexCoord(id);
+
+        vec4 transNormal = u_normalMatrix * vec4(vNormal, 1) * 0.08;
+        v_Dot = max(dot(transNormal.xyz, lightDir), 0.4);
       }
   </script>
 
@@ -48,8 +80,12 @@
       varying float v_Dot;
       varying vec2 v_texCoord;
 
+      varying float isVisible;
+
       void main()
       {
+        //if (isVisible == 0.)
+        //  discard;
           vec2 texCoord = vec2(v_texCoord.s, 1.0 - v_texCoord.t);
           vec4 color = texture2D(sampler2d, texCoord);
           color += vec4(0.1, 0.1, 0.1, 1);
