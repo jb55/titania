@@ -80,7 +80,6 @@ function initTestWorld(world) {
   var player = world.player = createPlayer(gl, playerNode);
   world.entities.push(player);
 
-  //
   terrainNode.translate([10, 5, 0]);
 
   // add eye camera
@@ -95,7 +94,8 @@ function initTestWorld(world) {
   var terrainBobbingController =
     new BobbingController(terrainNode, 0.2, 0.01, 2);
 
-  world.scene.attachController(terrainBobbingController);
+  //world.scene.attachController(terrainBobbingController);
+
 
   player.movement_controller = 
     new InputController(playerNode, 0.12, world.input);
@@ -350,10 +350,10 @@ World.prototype.setupRenderer = function(gl) {
   gl.uniform3f(gl.getUniformLocation(gl.program, "lightDir"), 0.5, 0.8, -0.2);
   gl.uniform1i(gl.getUniformLocation(gl.program, "sampler2d"), 0);
 
-  //gl.enable(gl.CULL_FACE);
+  gl.enable(gl.CULL_FACE);
   gl.enable(gl.TEXTURE_2D);
 
-  //gl.cullFace(gl.BACK);
+  gl.cullFace(gl.FRONT);
 
   var size = 23;
   gl.viewport(0, 0, this.width, this.height);

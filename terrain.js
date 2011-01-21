@@ -39,7 +39,8 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
   var texCoords = new Float32Array(numVerts * 2);
 
   var numElements = 
-    tesselate(data, xn, yn, zn, verts, texCoords, indices, normals);
+    buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals);
+
   this.vbo = new VBO(gl, verts, texCoords, normals, indices, numElements);
 }
 
@@ -87,10 +88,17 @@ BlockTerrain.prototype.render = function(gl) {
 // buildGrid
 //   builds an xn-by-yn-by-zn grid of vertices
 //===----------------------------------------------------------------------===//
-function buildGrid(gl, data, xn, yn, zn, verts, normals, texCoords, indices) {
+function buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals) {
   var vertInd = 0;
+  var indexInd = 0;
   var normalsInd = 0;
+  var texCoordInd = 0;
+  var startIndex = 0;
   var n = 0.5;
+
+  var dzn = data.length;
+  var dyn = data[0].length;
+  var dxn = data[0][0].length;
 
   //    v6----- v5
   //   /|      /|
@@ -118,13 +126,23 @@ function buildGrid(gl, data, xn, yn, zn, verts, normals, texCoords, indices) {
       0, 0,-1,   0, 0,-1,   0, 0,-1,   0, 0,-1 ]   // back
    );
 
+  // index array
+  var boxIndices = new Uint8Array(
+    [  0, 1, 2,   0, 2, 3,    // front
+       4, 5, 6,   4, 6, 7,    // right
+       8, 9,10,   8,10,11,    // top
+      12,13,14,  12,14,15,    // left
+      16,17,18,  16,18,19,    // bottom
+      20,21,22,  20,22,23 ]   // back
+  );
+
    // texCoords -> top right, top left, bottom left, bottom right
 
   // get block from map data
   function get(x, y, z) {
-    if (x >= xn) return 0;
-    if (y >= yn) return 0;
-    if (z >= zn) return 0;
+    if (z >= dzn) return 0;
+    if (y >= dyn) return 0;
+    if (x >= dxn) return 0;
     return data[z][y][x];
   }
 
@@ -135,24 +153,55 @@ function buildGrid(gl, data, xn, yn, zn, verts, normals, texCoords, indices) {
   var tilesY = textureHeight / tileSize;
   var tileU = 1 / tilesX;
   var tileV = 1 / tilesY;
+  var id;
+  var tid;
 
-  for (var x = 0; x < xn; x++) {
+  for (var z = 0; z < zn; z++) {
     for (var y = 0; y < yn; y++) {
-      for (var z = 0; z < zn; z++) {
-        for (var i = 0; i < boxVerts.length; i += 3) {
+      for (var x = 0; x < xn; x++) {
 
-          verts[vertInd++] = x + boxVerts[i] * n;
-          verts[vertInd++] = y + boxVerts[i+1] * n;
-          verts[vertInd++] = z + boxVerts[i+2] * n;
-
-          normals[normalsInd++] = boxNormals[i];
-          normals[normalsInd++] = boxNormals[i+1];
-          normals[normalsInd++] = boxNormals[i+2];
-
+        if (data) {
+          id = get(x, y, z);
+          tid = BLOCKS[id].texid;
         }
+
+        if (x == 0 && y == 0 && z == 0) {
+          tid = 9;
+        }
+
+        // foreach face
+        for (var i = 0; i < boxVerts.length; i += 12) {
+          // foreach vert
+          for (var j = 0; j < 12; j += 3) {
+            var k = i + j;
+            verts[vertInd++] = boxVerts[k] * n + x;
+            verts[vertInd++] = boxVerts[k+1] * n + y;
+            verts[vertInd++] = boxVerts[k+2] * n + z;
+
+            normals[normalsInd++] = boxNormals[k];
+            normals[normalsInd++] = boxNormals[k+1];
+            normals[normalsInd++] = boxNormals[k+2];
+          }
+
+          if (data) {
+            texCoordInd = texCoordFromId(tid, tilesX, tileU, tileV, texCoords,
+                                         texCoordInd);
+          }
+        }
+
+        if (id !== 0) {
+          for (var i = 0; i < boxIndices.length; i++) {
+            indices[indexInd++] = boxIndices[i] + startIndex;
+          }
+        }
+
+        startIndex += 24;
+
       }
     }
   }
+
+  return indexInd;
 }
 
 //===----------------------------------------------------------------------===//
@@ -177,10 +226,7 @@ function tesselate(data, xn, yn, zn, pos, texcoord, indices, normals) {
 
   // get block from map data
   function get(x, y, z) {
-    if (x >= xn) return 0;
-    if (y >= yn) return 0;
-    if (z >= zn) return 0;
-    return data[z][y][x];
+    return data[clamp(z, zn)][clamp(y, yn)][clamp(x, xn)];
   }
 
   function set_data(x0, y0, z0,
