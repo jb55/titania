@@ -1,13 +1,19 @@
 
+
 //===----------------------------------------------------------------------===//
 // InputController
 //===----------------------------------------------------------------------===//
-function InputController(node, moveAmount, input) {
+function InputController(node, moveAmount, input, flags) {
   this.input = input || new Input();
+  this.flags = flags || InputController.DEFAULT;
   this.node = node;
   this.getMoveAmount = !(moveAmount instanceof Function) ?
                        function() { return moveAmount; } : moveAmount;
 }
+
+InputController.ROTATE = 1 << 0;
+InputController.REV = 1 << 1;
+InputController.DEFAULT = InputController.ROTATE;
 
 
 //===----------------------------------------------------------------------===//
@@ -17,18 +23,30 @@ InputController.prototype.update = function() {
   var moveAmount = this.getMoveAmount();
   var v = vec3.create();
   var keyboard = this.input.keyboard;
+  var isRev = this.flags & InputController.REV;
+  var val = isRev ? -1 : 1;
 
   if (keyboard.up)
-    v[0] += 1;
+    v[0] += val;
   
   if (keyboard.down) 
-    v[0] -= 1;
+    v[0] -= val;
 
   if (keyboard.left) 
-    v[1] -= 1;
+    v[1] -= val;
 
   if (keyboard.right) 
-    v[1] += 1;
+    v[1] += val;
+
+  if (keyboard.z) 
+    v[2] -= val;
+
+  if (keyboard.x) 
+    v[2] += val;
+
+  if (keyboard.q && (this.flags & InputController.ROTATE)) {
+    this.node.rotate(0.1, [0, 0, 1]);
+  }
 
   if (!vec3.isZero(v)) {
     vec3.scale(vec3.normalize(v), moveAmount * (keyboard.shift ? 2 : 1));

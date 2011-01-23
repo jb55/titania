@@ -5,11 +5,12 @@ SRCS= glMatrix.js \
 	webgl-debug.js \
 	webgl-utils.js \
 	glutil.js \
+	terrain.js \
 	textures.js \
 	scene.js \
 	renderer.js \
 	data.js \
-	drawing.js \
+	vbo.js \
 	controllers.js \
 	world.js \
 	entity.js \

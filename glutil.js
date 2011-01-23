@@ -134,8 +134,10 @@ function initWebGL(canvas, vshader, fshader, attribs, clearColor, clearDepth,
 // perspectiveMatrix
 //  create a perspective matrix
 //===----------------------------------------------------------------------===//
-function perspectiveMatrix(width, height, fov, depth) {
-  return mat4.perspective(fov || 30, width / height, 1, depth || 10000);
+function perspectiveMatrix(width, height, fov, near, far) {
+  console.log(width, height);
+  return mat4.perspective(fov || 45, width / height, near || 1, far || 100);
+
 }
 
 
@@ -220,8 +222,8 @@ function doLoadImageTexture(ctx, image, texture) {
   ctx.bindTexture(ctx.TEXTURE_2D, texture);
   ctx.texImage2D(
       ctx.TEXTURE_2D, 0, ctx.RGBA, ctx.RGBA, ctx.UNSIGNED_BYTE, image);
-  ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.LINEAR);
-  ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.LINEAR);
+  ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
+  ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST);
   ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
   ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
   //ctx.generateMipmap(ctx.TEXTURE_2D)
@@ -244,6 +246,7 @@ function makeBox(ctx, obj)
   //  v2------v3
   //
   // vertex coords array
+
   var vertices = new Float32Array(
     [ 1, 1, 1,  -1, 1, 1,  -1,-1, 1,   1,-1, 1,    // v0-v1-v2-v3 front
       1, 1, 1,   1,-1, 1,   1,-1,-1,   1, 1,-1,    // v0-v3-v4-v5 right
@@ -308,7 +311,6 @@ function makeBox(ctx, obj)
 
   return box;
 }
-
 
 //
 // Framerate object
