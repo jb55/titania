@@ -97,39 +97,17 @@ function createPerspectiveCamera(width, height, fov, depth) {
 // createCamera
 //===----------------------------------------------------------------------===//
 function createCamera(frustum) {
-  var camera = new Camera(frustum);
-  var cameraNode = new SceneNode();
-  cameraNode.attachObject(camera);
+  var camera = new SceneNode();
+  camera.frustum = mat4.create(frustum);
+  camera.name = 'derp';
+
+  camera.getView = function() {
+    return camera.absoluteTransform;
+  }
+
+  camera.customUpdate = function(rel) {
+    mat4.multiply(camera.frustum, rel, this.relativeTransform);
+  }
 
   return camera;
-}
-
-//===----------------------------------------------------------------------===//
-// Camera
-//===----------------------------------------------------------------------===//
-function Camera(frustum) {
-  Entity.constructor.call(this);
-  this.frustum = frustum;
-  this.absoluteView = mat4.create(frustum);
-  this.view_outdated = true;
-}
-
-
-//===----------------------------------------------------------------------===//
-// Camera.isViewOutdated
-//===----------------------------------------------------------------------===//
-Camera.prototype.isViewOutdated = function() {
-  return this.view_outdated;
-}
-
-//===----------------------------------------------------------------------===//
-// Camera.getView
-//===----------------------------------------------------------------------===//
-Camera.prototype.getView = function() {
-//if (this.sceneNode.parent && this.isViewOutdated()) {
-//  this.view_outdated = true;
-//  mat4.multiply(
-//    this.frustum, this.sceneNode.absoluteTransform, this.absoluteView);
-//}
-  return this.absoluteView;
 }

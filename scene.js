@@ -16,8 +16,8 @@ function SceneNode() {
   this.orientation = quat4.identity();
   this.parent = null;
   this.relativeTransform = mat4.create();
-  this.absoluteTransform = mat4.create();
   mat4.identity(this.relativeTransform);
+  this.absoluteTransform = mat4.create();
   mat4.identity(this.absoluteTransform);
   this.visible = true;
   this.markForUpdate();
@@ -45,10 +45,14 @@ SceneNode.prototype.update = function() {
   var relative = this.relativeTransform;
   mat4.createTransform(this.position, this.scale, this.orientation, relative)
 
+  if (this.customUpdate) {
+    this.customUpdate(relative);
+  }
+
   if (parent) {
     mat4.multiply(parent.absoluteTransform, relative, this.absoluteTransform);
   } else {
-    mat4.set(this.absoluteTransform, relative);
+    mat4.set(relative, this.absoluteTransform);
   }
 
   this.needs_update = false;
@@ -201,12 +205,15 @@ Scene.prototype.update = function() {
   SceneNode.queue.length = 0;
 }
 
+//===----------------------------------------------------------------------===//
+// Scene.render
+//===----------------------------------------------------------------------===//
 Scene.prototype.render = function(gl, camera) {
   this.renderNode(gl, this.getRootNode(), camera.getView(), Scene.m);
 }
 
 //===----------------------------------------------------------------------===//
-// Scene.render
+// Scene.renderNode
 //===----------------------------------------------------------------------===//
 Scene.prototype.renderNode = function(gl, node, camera, m) {
   if (node.object && node.object.render) {

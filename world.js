@@ -1,3 +1,4 @@
+var DEBUG_GLOBAL = {};
 
 //===----------------------------------------------------------------------===//
 // World
@@ -36,10 +37,10 @@ function World(elem, vshader, fshader, fps) {
   gl.debugTexture = loadImageTexture(gl, "img/debug.png");
 
   // TEST
+  this.setupRenderer(gl);
   initTestWorld(this);
 
   this.box = makeBox(gl);
-  this.setupRenderer(gl);
 
   this.terrain.vbo.bind(gl);
 
@@ -80,13 +81,7 @@ function initTestWorld(world) {
   var player = world.player = createPlayer(gl, playerNode);
   world.entities.push(player);
 
-  terrainNode.translate([10, 5, 0]);
-
-  // add eye camera
-  //camera.sceneNode.setPosition([-player.head.size*4, 0, 0]);
-  //player.head.sceneNode.attachObject(camera.sceneNode);
-
-  playerNode.translate([2, 2, 2]);
+  playerNode.translate([10, 10, 1]);
 
   player.orientation_controller = 
     new FacingController(playerNode);
@@ -95,7 +90,8 @@ function initTestWorld(world) {
     new BobbingController(terrainNode, 0.2, 0.01, 2);
 
   //world.scene.attachController(terrainBobbingController);
-
+  world.scene.attachController(
+    new InputController(world.camera, 0.12, world.input, InputController.REV));
 
   player.movement_controller = 
     new InputController(playerNode, 0.12, world.input);
@@ -191,7 +187,13 @@ World.prototype.render = function() {
   // Clear the canvas
   this.clear(gl);
 
-  this.scene.render(gl, this.camera);
+  if (this.input.keyboard.e) {
+    this.currentCamera = this.player.headCam;
+  } else if (this.input.keyboard.r) {
+    this.currentCamera = this.camera;
+  }
+
+  this.scene.render(gl, this.currentCamera);
 
   // Finish up.
   gl.flush();
@@ -350,12 +352,12 @@ World.prototype.setupRenderer = function(gl) {
   gl.uniform3f(gl.getUniformLocation(gl.program, "lightDir"), 0.5, 0.8, -0.2);
   gl.uniform1i(gl.getUniformLocation(gl.program, "sampler2d"), 0);
 
-  gl.enable(gl.CULL_FACE);
+  //gl.enable(gl.CULL_FACE);
   gl.enable(gl.TEXTURE_2D);
 
-  gl.cullFace(gl.FRONT);
+  //gl.cullFace(gl.FRONT);
 
-  var size = 23;
+  var size = 10;
   gl.viewport(0, 0, this.width, this.height);
 
   // set up the isometric projection
@@ -367,12 +369,12 @@ World.prototype.setupRenderer = function(gl) {
   mat4.rotate(iso, (Math.PI/180)*45, [0, 0, 1]);
   mat4.translate(iso, [-15, -10, 0]);
   mat4.scale(iso, [1, 1, 1.2]);
+
   var ortho = mat4.ortho(size, -size, -size*0.6, size*0.6, -40, 100);
+  //var perspective = perspectiveMatrix(this.width, this.height, -40, 100);
   mat4.multiply(ortho, iso, gl.projectionMatrix);
   this.camera = createCamera(gl.projectionMatrix);
-
-//gl.projectionMatrix = perspectiveMatrix(this.width, this.height, 30, 100);
-//mat4.translate(gl.projectionMatrix, [-20, -15, -30]);
+  this.currentCamera = this.camera;
 
   // Matrices!
   gl.mvMatrix = mat4.create();
