@@ -10,7 +10,7 @@ SRCS= glMatrix.js \
 	scene.js \
 	renderer.js \
 	data.js \
-	vbo.js \
+	geometry.js \
 	controllers.js \
 	world.js \
 	entity.js \

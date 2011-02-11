@@ -76,6 +76,10 @@ Geometry.prototype.render = function(gl, kind, indexBufferType) {
   }
 }
 
+
+//===----------------------------------------------------------------------===//
+// updateBuffer
+//===----------------------------------------------------------------------===//
 function updateBuffer(gl, bufferType, buffer, offset, data, usage) {
   var needsRealloc = data.length + offset > buffer.length;
 

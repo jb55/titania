@@ -27,22 +27,22 @@ InputController.prototype.update = function() {
   var val = isRev ? -1 : 1;
 
   if (keyboard.up)
-    v[0] += val;
+    v[0] -= val;
   
   if (keyboard.down) 
-    v[0] -= val;
+    v[0] += val;
 
   if (keyboard.left) 
-    v[1] -= val;
-
-  if (keyboard.right) 
-    v[1] += val;
-
-  if (keyboard.z) 
     v[2] -= val;
 
-  if (keyboard.x) 
+  if (keyboard.right) 
     v[2] += val;
+
+  if (keyboard.z) 
+    v[1] -= val;
+
+  if (keyboard.x) 
+    v[1] += val;
 
   if (keyboard.q && (this.flags & InputController.ROTATE)) {
     this.node.rotate(0.1, [0, 0, 1]);

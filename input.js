@@ -25,7 +25,7 @@ function Input() {
       case 69: self.keyboard['e'] = val; break;
       case 81: self.keyboard['q'] = val; break;
       case 88: self.keyboard['x'] = val; break;
-      case 89: self.keyboard['z'] = val; break;
+      case 90: self.keyboard['z'] = val; break;
       case 82: self.keyboard['r'] = val; break;
     }
   };

@@ -4,8 +4,12 @@ var DEBUG_GLOBAL = {};
 // World
 //===----------------------------------------------------------------------===//
 function World(elem, vshader, fshader, fps) {
-  this.width = window.innerWidth * 0.9;
-  this.height = window.innerHeight * 0.9;
+
+  var aspect = 9. / 16.;
+  var restrict = 0.8;
+
+  this.width = window.innerWidth * restrict;
+  this.height = aspect * this.width;
   this.block_size = 32;
   this.block_width = 20;
   this.block_height = 20;
@@ -42,7 +46,7 @@ function World(elem, vshader, fshader, fps) {
 
   this.box = makeBox(gl);
 
-  this.terrain.vbo.bind(gl);
+  this.terrain.geometry.bind(gl);
 
   var self = this;
   var framerate = new Framerate(fps);
@@ -102,40 +106,6 @@ function initTestWorld(world) {
 }
 
 //===----------------------------------------------------------------------===//
-// World.doCollisions
-//===----------------------------------------------------------------------===//
-World.prototype.doCollisions = function() {
-  collisionPush(this, this.player);
-};
-
-
-//===----------------------------------------------------------------------===//
-// World.getBlockCoord
-//===----------------------------------------------------------------------===//
-World.prototype.getBlockCoord = function(x, y) {
-  x %= this.width;
-  y %= this.height;
-
-  x /= this.block_size;
-  y /= this.block_size;
-
-  x = Math.floor(x);
-  y = Math.floor(y);
-
-  return {x: x, y: y};
-};
-
-
-//===----------------------------------------------------------------------===//
-// World.getBlockFromPoint
-//===----------------------------------------------------------------------===//
-World.prototype.getBlockFromPoint = function(x, y) {
-  var blockPoint = this.getBlockCoord(x, y);
-  return this.getBlock(blockPoint.x, blockPoint.y);
-};
-
-
-//===----------------------------------------------------------------------===//
 // World.getBlock
 //===----------------------------------------------------------------------===//
 World.prototype.getBlock = function(x, y, z) {
@@ -152,14 +122,6 @@ World.prototype.getBlock = function(x, y, z) {
 
   return BLOCKS[row[x]] || def;
 };
-
-function setBlockTransform(t, m, x, y, z) {
-  t[z][y][x] = m;
-}
-
-function getBlockTransform(t, x, y, z) {
-  return t[z][y][x];
-}
 
 //===----------------------------------------------------------------------===//
 // World.clear
@@ -364,15 +326,14 @@ World.prototype.setupRenderer = function(gl) {
   var iso = mat4.create();
   gl.projectionMatrix = mat4.create();
   mat4.identity(iso);
-  mat4.rotate(iso, (Math.PI/180)*90, [0, 0, 1]);
-  mat4.rotate(iso, (Math.PI/180)*35.264, [0, 1, 0]);
-  mat4.rotate(iso, (Math.PI/180)*45, [0, 0, 1]);
+  mat4.rotate(iso, (Math.PI/180)*42.264, [1, 0, 0]);
+  mat4.rotate(iso, (Math.PI/180)*-45, [0, 1, 0]);
   mat4.translate(iso, [-15, -10, 0]);
-  mat4.scale(iso, [1, 1, 1.2]);
+  //mat4.scale(iso, [1, 1.15, 1]);
 
-  var ortho = mat4.ortho(size, -size, -size*0.6, size*0.6, -40, 100);
-  //var perspective = perspectiveMatrix(this.width, this.height, -40, 100);
-  mat4.multiply(ortho, iso, gl.projectionMatrix);
+  var frustum = mat4.ortho(size, -size, -size*0.6, size*0.6, -40, 100);
+  //var frustum = perspectiveMatrix(this.width, this.height, 45, 1, 100);
+  mat4.multiply(frustum, iso, gl.projectionMatrix);
   this.camera = createCamera(gl.projectionMatrix);
   this.currentCamera = this.camera;
 

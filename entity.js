@@ -10,7 +10,7 @@ function Entity(node) {
 
 
 //===----------------------------------------------------------------------===//
-// Entity.update
+// Entity.updateControllers
 //===----------------------------------------------------------------------===//
 Entity.prototype.updateControllers = function() {
   if (this.movement_controller) {
@@ -67,16 +67,16 @@ function createPlayer(gl, playerNode) {
   var armPos = -bodyThickness-armThickness;
 
   player.body = attachLimb(
-    [bodyThickness, bodyThickness/2, bodyScale], [0, 0, 0]); // body
+    [bodyThickness, bodyScale, bodyThickness/2], [0, 0, 0]); // body
 
   player.leftArm = attachLimb(
-    [armThickness, armThickness, 1], [-armPos, 0, -armPos]); // left arm
+    [armThickness, 1, armThickness], [-armPos, -armPos, 0]); // left arm
 
   player.rightArm = attachLimb(
-    [armThickness, armThickness, 1], [armPos, 0, -armPos]); // right arm
+    [armThickness, 1, armThickness], [armPos, -armPos, 0]); // right arm
 
   player.head = attachLimb(
-    [headSize, headSize, headSize], [0, 0, bodyScale+headSize]); // head
+    [headSize, headSize, headSize], [0, bodyScale + headSize, 0]); // head
 
   player.head.renderable.texture = gl.debugTexture;
   player.head.size = headSize;
