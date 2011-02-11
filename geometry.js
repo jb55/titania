@@ -1,8 +1,8 @@
 
 //===----------------------------------------------------------------------===//
-// VBO
+// Geometry
 //===----------------------------------------------------------------------===//
-function VBO(gl, vertices, texCoords, normals, indices, numElements) {
+function Geometry(gl, vertices, texCoords, normals, indices, numElements) {
 
   if (normals) {
     this.normalBuffer = gl.createBuffer();
@@ -37,9 +37,9 @@ function VBO(gl, vertices, texCoords, normals, indices, numElements) {
 }
 
 //===----------------------------------------------------------------------===//
-// VBO.bind
+// Geometry.bind
 //===----------------------------------------------------------------------===//
-VBO.prototype.bind = function(gl) {
+Geometry.prototype.bind = function(gl) {
   gl.enableVertexAttribArray(2);
 
   // Set up all the vertex attributes for vertices, normals and texCoords
@@ -65,9 +65,9 @@ VBO.prototype.bind = function(gl) {
 }
 
 //===----------------------------------------------------------------------===//
-// VBO.render
+// Geometry.render
 //===----------------------------------------------------------------------===//
-VBO.prototype.render = function(gl, kind, indexBufferType) {
+Geometry.prototype.render = function(gl, kind, indexBufferType) {
   if (this.indexBuffer) {
     gl.drawElements(kind, this.numElements, 
                     indexBufferType || gl.UNSIGNED_SHORT, 0);
@@ -91,5 +91,5 @@ function updateBuffer(gl, bufferType, buffer, offset, data, usage) {
 }
 
 
-VBO.prototype.updateIBO = function(gl, offset, data) {
+Geometry.prototype.updateIBO = function(gl, offset, data) {
 }
