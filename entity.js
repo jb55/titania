@@ -50,8 +50,8 @@ function createPlayer(gl, playerNode) {
 
   function attachLimb(scale, position) {
     var limb = new Entity();
-    limb.renderable = getCubeRenderable(gl);
-    limb.renderable.texture = getTexture(gl, 'smoothstone');
+    //limb.renderable = getCubeRenderable(gl);
+    //limb.renderable.texture = getTexture(gl, 'smoothstone');
     var limbNode = new SceneNode();
     limbNode.setScale(scale);
     limbNode.setPosition(position);
@@ -78,7 +78,7 @@ function createPlayer(gl, playerNode) {
   player.head = attachLimb(
     [headSize, headSize, headSize], [0, bodyScale + headSize, 0]); // head
 
-  player.head.renderable.texture = gl.debugTexture;
+  //player.head.renderable.texture = gl.debugTexture;
   player.head.size = headSize;
 
   return player;

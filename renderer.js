@@ -20,7 +20,7 @@ Renderable.prototype.render = function(gl) {
 // renderCube
 //===----------------------------------------------------------------------===//
 function renderCube(gl, cubeMesh) {
-  gl.drawElements(gl.TRIANGLES, cubeMesh.numIndices, gl.UNSIGNED_BYTE, 0);
+  //gl.drawElements(gl.TRIANGLES, cubeMesh.numIndices, gl.UNSIGNED_BYTE, 0);
 }
 
 

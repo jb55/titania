@@ -152,7 +152,7 @@ function glEnumToString(value) {
   checkInit();
   var name = glEnums[value];
   return (name !== undefined) ? name :
-      ("*UNKNOWN WebGL ENUM (0x" + value.toString(16) + ")");
+      ("*UNKNOWN WebGL ENUM (0x" + (value || "").toString(16) + ")");
 }
 
 /**

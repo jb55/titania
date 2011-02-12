@@ -168,37 +168,6 @@ function isometricMatrix() {
 
 
 //===----------------------------------------------------------------------===//
-// bindBuffers
-//===----------------------------------------------------------------------===//
-function bindBuffers(gl, indexBuffer, vertexBuffer, normalBuffer, 
-                     texCoordBuffer) {
-  gl.enableVertexAttribArray(0);
-  gl.enableVertexAttribArray(1);
-  gl.enableVertexAttribArray(2);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 0, 0);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-  gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
-
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-}
-
-
-//===----------------------------------------------------------------------===//
-// bindObject
-//===----------------------------------------------------------------------===//
-function bindObject(gl, object) {
-  bindBuffers(gl, object.indexBuffer, object.vertexBuffer, object.normalBuffer,
-              object.texCoordBuffer);
-}
-
-
-//===----------------------------------------------------------------------===//
 // bindTexture
 //===----------------------------------------------------------------------===//
 function bindTexture(gl, texture) {

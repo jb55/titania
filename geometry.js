@@ -3,66 +3,44 @@
 // Geometry
 //===----------------------------------------------------------------------===//
 function Geometry(gl, vertices, texCoords, normals, indices, numElements) {
-
   if (normals) {
-    this.normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
+    this.normalBuffer = 
+      VBO.createNormalBuffer(gl, normals);
   }
 
   if (texCoords) {
-    this.texCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+    this.texCoordBuffer = 
+      VBO.createTexCoordBuffer(gl, texCoords);
   }
 
-  this.vertexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, null);
+  this.vertexBuffer = 
+    VBO.createVertexBuffer(gl, vertices);
 
   if (indices) {
-    this.indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-
+    this.indexBuffer = VBO.createIndexBuffer(gl, indices);
     this.numElements = numElements || indices.length;
   } else {
     this.numElements = numElements || vertices.length;
   }
-  
-
 }
+
 
 //===----------------------------------------------------------------------===//
 // Geometry.bind
 //===----------------------------------------------------------------------===//
 Geometry.prototype.bind = function(gl) {
-  gl.enableVertexAttribArray(2);
+  this.vertexBuffer.bind(gl);
 
-  // Set up all the vertex attributes for vertices, normals and texCoords
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-  gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 0, 0);
+  if (this.texCoordBuffer)
+    this.texCoordBuffer.bind(gl);
 
-  if (this.texCoordBuffer) {
-    gl.enableVertexAttribArray(1);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
-    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
-  }
+  if (this.normalBuffer)
+    this.normalBuffer.bind(gl);
 
-  if (this.normalBuffer) {
-    gl.enableVertexAttribArray(0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
-    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-  }
-  
-  if (this.indexBuffer) {
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-  }
-
+  if (this.indexBuffer)
+    this.indexBuffer.bind(gl);
 }
+
 
 //===----------------------------------------------------------------------===//
 // Geometry.render
@@ -95,5 +73,8 @@ function updateBuffer(gl, bufferType, buffer, offset, data, usage) {
 }
 
 
+//===----------------------------------------------------------------------===//
+// Geometry.updateIBO
+//===----------------------------------------------------------------------===//
 Geometry.prototype.updateIBO = function(gl, offset, data) {
 }

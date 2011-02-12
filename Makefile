@@ -15,6 +15,8 @@ SRCS= glMatrix.js \
 	world.js \
 	entity.js \
 	input.js \
+	utils.js \
+	vbo.js \
 	collision.js
 
 all: debug

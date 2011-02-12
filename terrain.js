@@ -6,6 +6,7 @@ function BlockTerrain(texture) {
   this.texture = texture;
 }
 
+
 //===----------------------------------------------------------------------===//
 // BlockTerrain.importMap
 //===----------------------------------------------------------------------===//
@@ -34,10 +35,15 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
   var numElements = 
     buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals);
 
+  //indices.options = { usage: gl.DYNAMIC_DRAW };
+
   this.geometry = 
     new Geometry(gl, verts, texCoords, normals, indices, numElements);
 }
 
+//===----------------------------------------------------------------------===//
+// clamp
+//===----------------------------------------------------------------------===//
 function clamp(n, size) {
   if (n < 0) {
     return 0;
@@ -48,6 +54,9 @@ function clamp(n, size) {
   }
 }
 
+//===----------------------------------------------------------------------===//
+// texCoordFromId
+//===----------------------------------------------------------------------===//
 function texCoordFromId(id, xn, u, v, dest, ind) {
   var lu = (id % xn) * u;
   var ru = lu + u;
@@ -78,6 +87,7 @@ BlockTerrain.prototype.render = function(gl) {
   this.geometry.bind(gl);
   this.geometry.render(gl, gl.TRIANGLES, gl.UNSIGNED_SHORT);
 }
+
 
 //===----------------------------------------------------------------------===//
 // buildGrid
