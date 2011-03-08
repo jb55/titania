@@ -25,7 +25,7 @@ function World(elem, vshader, fshader, fps) {
     vshader, 
     fshader,
     [ "vNormal", "vColor", "vPosition"],
-    [0.1, 0.1, 0.1, 1], // clear color
+    [1, 1, 1, 1], // clear color
     10000, // depth
     false //debug
   );
@@ -70,6 +70,9 @@ function initTestWorld(world) {
   var gl = world.gl;
   world.map = test_map;
   world.terrain.loadMap(gl, world.map);
+  
+  var cubeGeometry = Geometry.copy(world.terrain.geometry);
+  cubeGeometry.numElements = 36;
 
   // our root scene node
   var rootNode = world.scene.getRootNode();
@@ -82,7 +85,8 @@ function initTestWorld(world) {
   // attach the player to the root scene node
   var playerNode = new SceneNode();
   terrainNode.attachObject(playerNode);
-  var player = world.player = createPlayer(gl, playerNode);
+
+  var player = world.player = createPlayer(gl, playerNode, cubeGeometry);
   world.entities.push(player);
 
   playerNode.translate([10, 10, 1]);
@@ -159,10 +163,6 @@ World.prototype.render = function() {
 
   // Finish up.
   gl.flush();
-
-//this.clear(this.gl);
-//this.renderBlocks(this.gl);
-//this.gl.flush();
 }
 
 
@@ -311,7 +311,7 @@ function setUniform(gl, loc, m) {
 //===----------------------------------------------------------------------===//
 World.prototype.setupRenderer = function(gl) {
   // Set some uniform variables for the shaders
-  gl.uniform3f(gl.getUniformLocation(gl.program, "lightDir"), 0.5, 0.8, -0.2);
+  gl.uniform3f(gl.getUniformLocation(gl.program, "lightDir"), -1, 1, -0.09);
   gl.uniform1i(gl.getUniformLocation(gl.program, "sampler2d"), 0);
 
   //gl.enable(gl.CULL_FACE);
@@ -319,22 +319,23 @@ World.prototype.setupRenderer = function(gl) {
 
   //gl.cullFace(gl.FRONT);
 
-  var size = 10;
+  var size = 20;
   gl.viewport(0, 0, this.width, this.height);
 
   // set up the isometric projection
   var iso = mat4.create();
   gl.projectionMatrix = mat4.create();
   mat4.identity(iso);
-  mat4.rotate(iso, (Math.PI/180)*42.264, [1, 0, 0]);
+  mat4.rotate(iso, (Math.PI/180)*48.264, [1, 0, 0]);
   mat4.rotate(iso, (Math.PI/180)*-45, [0, 1, 0]);
   mat4.translate(iso, [-15, -10, 0]);
   //mat4.scale(iso, [1, 1.15, 1]);
 
-  var frustum = mat4.ortho(size, -size, -size*0.6, size*0.6, -40, 100);
-  //var frustum = perspectiveMatrix(this.width, this.height, 45, 1, 100);
+  //var frustum = mat4.ortho(size, -size, -size*0.6, size*0.6, -40, 100);
+  var frustum = mat4.perspective(45 /* fov */, this.width / this.height, 1, 100);
   mat4.multiply(frustum, iso, gl.projectionMatrix);
   this.camera = createCamera(gl.projectionMatrix);
+  this.camera.translate([0, -4, 0]);
   this.currentCamera = this.camera;
 
   // Matrices!

@@ -43,15 +43,15 @@ Entity.prototype.render = function(gl) {
 //===----------------------------------------------------------------------===//
 // createPlayer
 //===----------------------------------------------------------------------===//
-function createPlayer(gl, playerNode) {
+function createPlayer(gl, playerNode, geometry) {
   var player = new Entity();
 
   playerNode.attachObject(player);
 
   function attachLimb(scale, position) {
     var limb = new Entity();
-    //limb.renderable = getCubeRenderable(gl);
-    //limb.renderable.texture = getTexture(gl, 'smoothstone');
+    limb.texture = getTexture(gl, 'smoothstone');
+    limb.geometry = geometry;
     var limbNode = new SceneNode();
     limbNode.setScale(scale);
     limbNode.setPosition(position);

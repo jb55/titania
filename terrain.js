@@ -35,10 +35,12 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
   var numElements = 
     buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals);
 
-  //indices.options = { usage: gl.DYNAMIC_DRAW };
+  indices.options = { usage: gl.DYNAMIC_DRAW };
 
   this.geometry = 
     new Geometry(gl, verts, texCoords, normals, indices, numElements);
+
+  
 }
 
 //===----------------------------------------------------------------------===//
@@ -63,17 +65,17 @@ function texCoordFromId(id, xn, u, v, dest, ind) {
   var tv = 1.0 - ((Math.floor(id / xn) * v) + v);
   var bv = tv + v;
 
-  dest[ind++] = lu; // v3
-  dest[ind++] = tv;
-
-  dest[ind++] = ru; // v2
-  dest[ind++] = tv;
+  dest[ind++] = lu; // v0
+  dest[ind++] = bv;
 
   dest[ind++] = ru; // v1
   dest[ind++] = bv;
 
-  dest[ind++] = lu; // v0
-  dest[ind++] = bv;
+  dest[ind++] = ru; // v2
+  dest[ind++] = tv;
+
+  dest[ind++] = lu; // v3
+  dest[ind++] = tv;
 
   return ind;
 }
@@ -83,8 +85,6 @@ function texCoordFromId(id, xn, u, v, dest, ind) {
 //   Bind and render the terrain
 //===----------------------------------------------------------------------===//
 BlockTerrain.prototype.render = function(gl) {
-  gl.bindTexture(gl.TEXTURE_2D, this.texture);
-  this.geometry.bind(gl);
   this.geometry.render(gl, gl.TRIANGLES, gl.UNSIGNED_SHORT);
 }
 
@@ -115,9 +115,9 @@ function buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals) {
 
   var boxVerts = new Float32Array(
     [ 1, 1, 1,  -1, 1, 1,  -1,-1, 1,   1,-1, 1,    // v0-v1-v2-v3 front
-      1, 1, 1,   1,-1, 1,   1,-1,-1,   1, 1,-1,    // v0-v3-v4-v5 right
+      1, 1,-1,   1, 1, 1,   1,-1, 1,   1,-1,-1,    // v5-v0-v3-v4 right
      -1, 1, 1,   1, 1, 1,   1, 1,-1,  -1, 1,-1,    // v1-v0-v5-v6 top
-     -1,-1, 1,  -1, 1, 1,  -1, 1,-1,  -1,-1,-1,    // v2-v1-v6-v7 left
+     -1, 1, 1,  -1, 1,-1,  -1,-1,-1,  -1,-1, 1,    // v1-v6-v7-v2 left
       1,-1, 1,  -1,-1, 1,  -1,-1,-1,   1,-1,-1,    // v3-v2-v7-v4 bottom
      -1, 1,-1,   1, 1,-1,   1,-1,-1,  -1,-1,-1 ]   // v4-v7-v6-v5 back
   );
@@ -151,16 +151,19 @@ function buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals) {
     return data[y][x][z];
   }
 
-  var textureWidth = 512;
-  var textureHeight = 512;
-  var tileSize = 32;
-  var tilesX = textureWidth / tileSize;
-  var tilesY = textureHeight / tileSize;
-  var tileU = 1 / tilesX;
-  var tileV = 1 / tilesY;
-  var id;
-  var tid;
+  var textureWidth = 512
+    , textureHeight = 512
+    , tileSize = 32
+    , tilesX = textureWidth / tileSize
+    , tilesY = textureHeight / tileSize
+    , tileU = 1 / tilesX
+    , tileV = 1 / tilesY
+    , cTid
+    , id
+    , sideId
+    , tid;
 
+  // foreach block
   for (var y = 0; y < yn; y++) {
     for (var x = 0; x < xn; x++) {
       for (var z = 0; z < zn; z++) {
@@ -168,6 +171,7 @@ function buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals) {
         if (data) {
           id = get(x, y, z);
           tid = BLOCKS[id].texid;
+          sideId = BLOCKS[id].sideTex;
         }
 
         if (x == 0 && y == 0 && z == 0) {
@@ -189,8 +193,16 @@ function buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals) {
           }
 
           if (data) {
-            texCoordInd = texCoordFromId(tid, tilesX, tileU, tileV, texCoords,
-                                         texCoordInd);
+
+            // side faces
+            if (!(i == 24 || i == 48)) {
+              cTid = sideId || tid;
+            } else {
+              cTid = tid;
+            }
+
+            texCoordInd = 
+              texCoordFromId(cTid, tilesX, tileU, tileV, texCoords, texCoordInd);
           }
         }
 

@@ -35,7 +35,7 @@
         v_texCoord = vTexCoord.st;
         fog = 1.;
 
-        vec4 transNormal = u_normalMatrix * vec4(vNormal, 1) * 0.08;
+        vec4 transNormal = u_normalMatrix * vec4(vNormal, 1);
         v_Dot = max(dot(transNormal.xyz, lightDir), 0.4);
       }
   </script>

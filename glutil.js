@@ -136,7 +136,6 @@ function initWebGL(canvas, vshader, fshader, attribs, clearColor, clearDepth,
 //===----------------------------------------------------------------------===//
 function perspectiveMatrix(width, height, fov, near, far) {
   console.log(width, height);
-  return mat4.perspective(fov || 45, width / height, near || 1, far || 100);
 
 }
 

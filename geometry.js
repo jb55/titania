@@ -5,25 +5,40 @@
 function Geometry(gl, vertices, texCoords, normals, indices, numElements) {
   if (normals) {
     this.normalBuffer = 
-      VBO.createNormalBuffer(gl, normals);
+      VBO.createNormalBuffer(gl, normals, normals.options);
   }
 
   if (texCoords) {
     this.texCoordBuffer = 
-      VBO.createTexCoordBuffer(gl, texCoords);
+      VBO.createTexCoordBuffer(gl, texCoords, texCoords.options);
   }
 
-  this.vertexBuffer = 
-    VBO.createVertexBuffer(gl, vertices);
+  if (vertices) {
+    this.vertexBuffer = 
+      VBO.createVertexBuffer(gl, vertices, vertices.options);
+  }
 
   if (indices) {
-    this.indexBuffer = VBO.createIndexBuffer(gl, indices);
+    this.indexBuffer = VBO.createIndexBuffer(gl, indices, indices.options);
     this.numElements = numElements || indices.length;
-  } else {
+  } else if(vertices) {
     this.numElements = numElements || vertices.length;
   }
 }
 
+//===----------------------------------------------------------------------===//
+// Geometry.copy
+//   Weak copy, does not physically copy hardware buffers
+//===----------------------------------------------------------------------===//
+Geometry.copy = function(gl) {
+  var newGeo = new Geometry(gl);
+  newGeo.vertexBuffer = gl.vertexBuffer;
+  newGeo.indexBuffer = gl.indexBuffer;
+  newGeo.texCoordBuffer = gl.texCoordBuffer;
+  newGeo.normalBuffer = gl.normalBuffer;
+  newGeo.numElements = gl.numElements;
+  return newGeo;
+}
 
 //===----------------------------------------------------------------------===//
 // Geometry.bind
@@ -78,3 +93,4 @@ function updateBuffer(gl, bufferType, buffer, offset, data, usage) {
 //===----------------------------------------------------------------------===//
 Geometry.prototype.updateIBO = function(gl, offset, data) {
 }
+

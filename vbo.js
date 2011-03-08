@@ -16,6 +16,7 @@ function VBO(gl, elems, options) {
   gl.bindBuffer(type, null);
 }
 
+
 //===----------------------------------------------------------------------===//
 // VBO.createNormalBuffer
 //===----------------------------------------------------------------------===//
@@ -25,6 +26,7 @@ VBO.createNormalBuffer = function(gl, elems, options) {
     slot: 0
   }, options));
 }
+
 
 //===----------------------------------------------------------------------===//
 // VBO.createTexCoordBuffer
@@ -36,6 +38,7 @@ VBO.createTexCoordBuffer = function(gl, elems, options) {
   }, options));
 }
 
+
 //===----------------------------------------------------------------------===//
 // VBO.createVertexBuffer
 //===----------------------------------------------------------------------===//
@@ -45,6 +48,7 @@ VBO.createVertexBuffer = function(gl, elems, options) {
     slot: 2
   }, options)); 
 }
+
 
 //===----------------------------------------------------------------------===//
 // VBO.createIndexBuffer

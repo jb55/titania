@@ -220,7 +220,7 @@ Scene.prototype.renderNode = function(gl, node, camera, m) {
     mat4.multiply(camera, node.absoluteTransform, m);
     setProjectionUniform(gl, m);
     calculateNormals(gl, m);
-    node.object.render(gl);
+    Renderer.renderEntity(gl, node.object);
   }
 
   var children = node.children;
