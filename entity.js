@@ -99,7 +99,6 @@ function createPerspectiveCamera(width, height, fov, depth) {
 function createCamera(frustum) {
   var camera = new SceneNode();
   camera.frustum = mat4.create(frustum);
-  camera.name = 'derp';
 
   camera.getView = function() {
     return camera.absoluteTransform;

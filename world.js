@@ -162,7 +162,6 @@ World.prototype.render = function() {
   this.scene.render(gl, this.currentCamera);
 
   // Finish up.
-  gl.flush();
 }
 
 
@@ -229,15 +228,6 @@ World.prototype.preload = function(gl, done) {
 World.prototype.updateEntities = function(gl) {
   for (var i = 0; i < this.entities.length; i++) {
     this.entities[i].update();
-  };
-}
-
-//===----------------------------------------------------------------------===//
-// World.renderEntities
-//===----------------------------------------------------------------------===//
-World.prototype.renderEntities = function(gl) {
-  for (var i = 0; i < this.entities.length; i++) {
-    this.entities[i].render(gl);
   };
 }
 
