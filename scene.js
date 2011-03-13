@@ -205,12 +205,14 @@ Scene.prototype.update = function() {
   SceneNode.queue.length = 0;
 }
 
+
 //===----------------------------------------------------------------------===//
 // Scene.render
 //===----------------------------------------------------------------------===//
 Scene.prototype.render = function(gl, camera) {
   this.renderNode(gl, this.getRootNode(), camera.getView(), Scene.m);
 }
+
 
 //===----------------------------------------------------------------------===//
 // Scene.renderNode
