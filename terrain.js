@@ -37,10 +37,7 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
 
   indices.options = { usage: gl.DYNAMIC_DRAW };
 
-  this.geometry = 
-    new Geometry(gl, verts, texCoords, normals, indices, numElements);
-
-  
+  this.geometry = new Mesh(gl, verts, texCoords, normals, indices, numElements);
 }
 
 //===----------------------------------------------------------------------===//
