@@ -71,8 +71,8 @@ function initTestWorld(world) {
   world.map = test_map;
   world.terrain.loadMap(gl, world.map);
   
-  var cubeMesh = Mesh.copy(world.terrain.geometry);
-  cubeMesh.numElements = 36;
+  var cubeGeometry = Geometry.copy(world.terrain.geometry);
+  cubeGeometry.numElements = 36;
 
   // our root scene node
   var rootNode = world.scene.getRootNode();
@@ -86,7 +86,7 @@ function initTestWorld(world) {
   var playerNode = new SceneNode();
   terrainNode.attachObject(playerNode);
 
-  var player = world.player = createPlayer(gl, playerNode, cubeMesh);
+  var player = world.player = createPlayer(gl, playerNode, cubeGeometry);
   world.entities.push(player);
 
   //playerNode.translate([10, 10, 1]);

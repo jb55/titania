@@ -1,8 +1,8 @@
 
 //===----------------------------------------------------------------------===//
-// Mesh
+// Geometry
 //===----------------------------------------------------------------------===//
-function Mesh(gl, vertices, texCoords, normals, indices, numElements) {
+function Geometry(gl, vertices, texCoords, normals, indices, numElements) {
   if (normals) {
     this.normalBuffer = 
       VBO.createNormalBuffer(gl, normals, normals.options);
@@ -27,11 +27,11 @@ function Mesh(gl, vertices, texCoords, normals, indices, numElements) {
 }
 
 //===----------------------------------------------------------------------===//
-// Mesh.copy
+// Geometry.copy
 //   Weak copy, does not physically copy hardware buffers
 //===----------------------------------------------------------------------===//
-Mesh.copy = function(gl) {
-  var newGeo = new Mesh(gl);
+Geometry.copy = function(gl) {
+  var newGeo = new Geometry(gl);
   newGeo.vertexBuffer = gl.vertexBuffer;
   newGeo.indexBuffer = gl.indexBuffer;
   newGeo.texCoordBuffer = gl.texCoordBuffer;
@@ -41,9 +41,9 @@ Mesh.copy = function(gl) {
 }
 
 //===----------------------------------------------------------------------===//
-// Mesh.bind
+// Geometry.bind
 //===----------------------------------------------------------------------===//
-Mesh.prototype.bind = function(gl) {
+Geometry.prototype.bind = function(gl) {
   this.vertexBuffer.bind(gl);
 
   if (this.texCoordBuffer)
@@ -58,9 +58,9 @@ Mesh.prototype.bind = function(gl) {
 
 
 //===----------------------------------------------------------------------===//
-// Mesh.render
+// Geometry.render
 //===----------------------------------------------------------------------===//
-Mesh.prototype.render = function(gl, kind, indexBufferType) {
+Geometry.prototype.render = function(gl, kind, indexBufferType) {
   if (this.indexBuffer) {
     gl.drawElements(kind, this.numElements, 
                     indexBufferType || gl.UNSIGNED_SHORT, 0);
@@ -89,8 +89,8 @@ function updateBuffer(gl, bufferType, buffer, offset, data, usage) {
 
 
 //===----------------------------------------------------------------------===//
-// Mesh.updateIBO
+// Geometry.updateIBO
 //===----------------------------------------------------------------------===//
-Mesh.prototype.updateIBO = function(gl, offset, data) {
+Geometry.prototype.updateIBO = function(gl, offset, data) {
 }
 
