@@ -89,7 +89,7 @@ function initTestWorld(world) {
   var player = world.player = createPlayer(gl, playerNode, cubeGeometry);
   world.entities.push(player);
 
-  playerNode.translate([10, 10, 1]);
+  //playerNode.translate([10, 10, 1]);
 
   player.orientation_controller = 
     new FacingController(playerNode);
@@ -318,14 +318,16 @@ World.prototype.setupRenderer = function(gl) {
   mat4.identity(iso);
   mat4.rotate(iso, (Math.PI/180)*48.264, [1, 0, 0]);
   mat4.rotate(iso, (Math.PI/180)*-45, [0, 1, 0]);
-  mat4.translate(iso, [-15, -10, 0]);
   //mat4.scale(iso, [1, 1.15, 1]);
 
   //var frustum = mat4.ortho(size, -size, -size*0.6, size*0.6, -40, 100);
   var frustum = mat4.perspective(45 /* fov */, this.width / this.height, 1, 100);
   mat4.multiply(frustum, iso, gl.projectionMatrix);
   this.camera = createCamera(gl.projectionMatrix);
-  this.camera.translate([0, -4, 0]);
+
+  // zoom out a bit
+  this.camera.translate([-5, -10, -5]);
+
   this.currentCamera = this.camera;
 
   // Matrices!

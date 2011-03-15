@@ -50,7 +50,7 @@ function createPlayer(gl, playerNode, geometry) {
 
   function attachLimb(scale, position) {
     var limb = new Entity();
-    limb.texture = getTexture(gl, 'smoothstone');
+    limb.texture = getTexture(gl, 'terrain');
     limb.geometry = geometry;
     var limbNode = new SceneNode();
     limbNode.setScale(scale);
