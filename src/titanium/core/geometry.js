@@ -2,24 +2,24 @@
 //===----------------------------------------------------------------------===//
 // Geometry
 //===----------------------------------------------------------------------===//
-function Geometry(gl, vertices, texCoords, normals, indices, numElements) {
+Ti.Geometry = function(gl, vertices, texCoords, normals, indices, numElements) {
   if (normals) {
     this.normalBuffer = 
-      VBO.createNormalBuffer(gl, normals, normals.options);
+      Ti.VBO.createNormalBuffer(gl, normals, normals.options);
   }
 
   if (texCoords) {
     this.texCoordBuffer = 
-      VBO.createTexCoordBuffer(gl, texCoords, texCoords.options);
+      Ti.VBO.createTexCoordBuffer(gl, texCoords, texCoords.options);
   }
 
   if (vertices) {
     this.vertexBuffer = 
-      VBO.createVertexBuffer(gl, vertices, vertices.options);
+      Ti.VBO.createVertexBuffer(gl, vertices, vertices.options);
   }
 
   if (indices) {
-    this.indexBuffer = VBO.createIndexBuffer(gl, indices, indices.options);
+    this.indexBuffer = Ti.VBO.createIndexBuffer(gl, indices, indices.options);
     this.numElements = numElements || indices.length;
   } else if(vertices) {
     this.numElements = numElements || vertices.length;
@@ -30,8 +30,8 @@ function Geometry(gl, vertices, texCoords, normals, indices, numElements) {
 // Geometry.copy
 //   Weak copy, does not physically copy hardware buffers
 //===----------------------------------------------------------------------===//
-Geometry.copy = function(gl) {
-  var newGeo = new Geometry(gl);
+Ti.Geometry.copy = function(gl) {
+  var newGeo = new Ti.Geometry(gl);
   newGeo.vertexBuffer = gl.vertexBuffer;
   newGeo.indexBuffer = gl.indexBuffer;
   newGeo.texCoordBuffer = gl.texCoordBuffer;
@@ -43,7 +43,7 @@ Geometry.copy = function(gl) {
 //===----------------------------------------------------------------------===//
 // Geometry.bind
 //===----------------------------------------------------------------------===//
-Geometry.prototype.bind = function(gl) {
+Ti.Geometry.prototype.bind = function(gl) {
   this.vertexBuffer.bind(gl);
 
   if (this.texCoordBuffer)
@@ -60,7 +60,7 @@ Geometry.prototype.bind = function(gl) {
 //===----------------------------------------------------------------------===//
 // Geometry.render
 //===----------------------------------------------------------------------===//
-Geometry.prototype.render = function(gl, kind, indexBufferType) {
+Ti.Geometry.prototype.render = function(gl, kind, indexBufferType) {
   if (this.indexBuffer) {
     gl.drawElements(kind, this.numElements, 
                     indexBufferType || gl.UNSIGNED_SHORT, 0);
@@ -73,7 +73,7 @@ Geometry.prototype.render = function(gl, kind, indexBufferType) {
 //===----------------------------------------------------------------------===//
 // updateBuffer
 //===----------------------------------------------------------------------===//
-function updateBuffer(gl, bufferType, buffer, offset, data, usage) {
+Ti.Geometry.updateBuffer= function(gl, bufferType, buffer, offset, data, usage){
   var needsRealloc = data.length + offset > buffer.length;
 
   gl.bindBuffer(bufferType, buffer);
@@ -91,6 +91,5 @@ function updateBuffer(gl, bufferType, buffer, offset, data, usage) {
 //===----------------------------------------------------------------------===//
 // Geometry.updateIBO
 //===----------------------------------------------------------------------===//
-Geometry.prototype.updateIBO = function(gl, offset, data) {
+Ti.Geometry.prototype.updateIBO = function(gl, offset, data) {
 }
-

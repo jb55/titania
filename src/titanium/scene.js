@@ -1,13 +1,8 @@
 
-var POSITION = 1 << 0;
-var SCALE = 1 << 1;
-var ORIENTATION = 1 << 2;
-var ZROT = 1 << 3;
-
 //===----------------------------------------------------------------------===//
 // SceneNode
 //===----------------------------------------------------------------------===//
-function SceneNode() {
+Ti.SceneNode = function() {
   this.children = [];
   this.object = null;
   this.position = vec3.create([0, 0, 0]);
@@ -26,17 +21,17 @@ function SceneNode() {
 //===----------------------------------------------------------------------===//
 // SceneNode.queueUpdate (static)
 //===----------------------------------------------------------------------===//
-SceneNode.queueUpdate = function(node) {
-  if (!SceneNode.queue)
-    SceneNode.queue = [];
+Ti.SceneNode.queueUpdate = function(node) {
+  if (!Ti.SceneNode.queue)
+    Ti.SceneNode.queue = [];
 
-  SceneNode.queue.push(node);
+  Ti.SceneNode.queue.push(node);
 }
 
 //===----------------------------------------------------------------------===//
 // SceneNode.update
 //===----------------------------------------------------------------------===//
-SceneNode.prototype.update = function() {
+Ti.SceneNode.prototype.update = function() {
   var parent = this.parent;
   if (parent && parent.needsUpdate()) {
     parent.update();
@@ -61,7 +56,7 @@ SceneNode.prototype.update = function() {
 //===----------------------------------------------------------------------===//
 // SceneNode.needsUpdate
 //===----------------------------------------------------------------------===//
-SceneNode.prototype.needsUpdate = function() {
+Ti.SceneNode.prototype.needsUpdate = function() {
   // Don't bother updating invisible nodes
   return this.needs_update;
 };
@@ -70,7 +65,7 @@ SceneNode.prototype.needsUpdate = function() {
 //===----------------------------------------------------------------------===//
 // SceneNode.canIgnoreUpdate
 //===----------------------------------------------------------------------===//
-SceneNode.prototype.canIgnoreUpdate = function() {
+Ti.SceneNode.prototype.canIgnoreUpdate = function() {
   // Don't bother updating invisible nodes
   return false;
 };
@@ -80,7 +75,7 @@ SceneNode.prototype.canIgnoreUpdate = function() {
 //===----------------------------------------------------------------------===//
 // SceneNode.markForUpdate
 //===----------------------------------------------------------------------===//
-SceneNode.prototype.markForUpdate = function(scene) {
+Ti.SceneNode.prototype.markForUpdate = function(scene) {
   if (this.needs_update === true) {
     // already marked for update
     return;
@@ -88,7 +83,7 @@ SceneNode.prototype.markForUpdate = function(scene) {
 
   // push parent first
   this.needs_update = true;
-  SceneNode.queueUpdate(this);
+  Ti.SceneNode.queueUpdate(this);
 
   // mark children
   var children = this.children;
@@ -104,7 +99,7 @@ SceneNode.prototype.markForUpdate = function(scene) {
 //===----------------------------------------------------------------------===//
 // SceneNode.setPosition
 //===----------------------------------------------------------------------===//
-SceneNode.prototype.setPosition = function(vec) {
+Ti.SceneNode.prototype.setPosition = function(vec) {
   vec3.set(vec, this.position);
   this.markForUpdate();
 };
@@ -113,7 +108,7 @@ SceneNode.prototype.setPosition = function(vec) {
 //===----------------------------------------------------------------------===//
 // SceneNode.rotate
 //===----------------------------------------------------------------------===//
-SceneNode.prototype.rotate = function(angle, axis) {
+Ti.SceneNode.prototype.rotate = function(angle, axis) {
   var q = quat4.fromAngleAxis(angle, axis);
   quat4.normalize(q);
   quat4.multiply(this.orientation, q);
@@ -124,7 +119,7 @@ SceneNode.prototype.rotate = function(angle, axis) {
 //===----------------------------------------------------------------------===//
 // SceneNode.setOrientation
 //===----------------------------------------------------------------------===//
-SceneNode.prototype.setOrientation = function(quat) {
+Ti.SceneNode.prototype.setOrientation = function(quat) {
   quat4.set(quat, this.orientation);
   this.markForUpdate();
 };
@@ -133,7 +128,7 @@ SceneNode.prototype.setOrientation = function(quat) {
 //===----------------------------------------------------------------------===//
 // SceneNode.setScale
 //===----------------------------------------------------------------------===//
-SceneNode.prototype.setScale = function(vec) {
+Ti.SceneNode.prototype.setScale = function(vec) {
   vec3.set(vec, this.scale);
   this.markForUpdate();
 };
@@ -143,8 +138,8 @@ SceneNode.prototype.setScale = function(vec) {
 // SceneNode.attachObject
 //   attach an object to the scene node
 //===----------------------------------------------------------------------===//
-SceneNode.prototype.attachObject = function(obj) {
-  if (obj instanceof SceneNode) {
+Ti.SceneNode.prototype.attachObject = function(obj) {
+  if (obj instanceof Ti.SceneNode) {
     obj.parent = this;
     this.children.push(obj);
   } else {
@@ -157,7 +152,7 @@ SceneNode.prototype.attachObject = function(obj) {
 //===----------------------------------------------------------------------===//
 // SceneNode.translate
 //===----------------------------------------------------------------------===//
-SceneNode.prototype.translate = function(vec) {
+Ti.SceneNode.prototype.translate = function(vec) {
   vec3.add(this.position, vec);
   this.markForUpdate();
 };
@@ -166,63 +161,63 @@ SceneNode.prototype.translate = function(vec) {
 //===----------------------------------------------------------------------===//
 // Scene
 //===----------------------------------------------------------------------===//
-function Scene(root) {
-  this.root = root || new SceneNode();
+Ti.Scene = function(root) {
+  this.root = root || new Ti.SceneNode();
   this.controllers = [];
 
   // temporary matrix for scene graph updates
-  Scene.m = mat4.create();
+  Ti.Scene.m = mat4.create();
 }
 
 //===----------------------------------------------------------------------===//
 // Scene.attachController
 //===----------------------------------------------------------------------===//
-Scene.prototype.attachController = function(controller) {
+Ti.Scene.prototype.attachController = function(controller) {
   this.controllers.push(controller);
 }
 
 //===----------------------------------------------------------------------===//
 // Scene.getRootNode
 //===----------------------------------------------------------------------===//
-Scene.prototype.getRootNode = function() {
+Ti.Scene.prototype.getRootNode = function() {
   return this.root;
 }
 
 //===----------------------------------------------------------------------===//
 // Scene.update
 //===----------------------------------------------------------------------===//
-Scene.prototype.update = function() {
+Ti.Scene.prototype.update = function() {
   // update controllers
   var controllers = this.controllers;
   for (var i = 0; i < controllers.length; i++) {
     controllers[i].update();
   }
 
-  var queue = SceneNode.queue;
+  var queue = Ti.SceneNode.queue;
   for (var i = 0; i < queue.length; i++) {
     queue[i].update();
   }
-  SceneNode.queue.length = 0;
+  Ti.SceneNode.queue.length = 0;
 }
 
 
 //===----------------------------------------------------------------------===//
 // Scene.render
 //===----------------------------------------------------------------------===//
-Scene.prototype.render = function(gl, camera) {
-  this.renderNode(gl, this.getRootNode(), camera.getView(), Scene.m);
+Ti.Scene.prototype.render = function(gl, camera) {
+  this.renderNode(gl, this.getRootNode(), camera.getView(), Ti.Scene.m);
 }
 
 
 //===----------------------------------------------------------------------===//
 // Scene.renderNode
 //===----------------------------------------------------------------------===//
-Scene.prototype.renderNode = function(gl, node, camera, m) {
+Ti.Scene.prototype.renderNode = function(gl, node, camera, m) {
   if (node.object && node.object.render) {
     mat4.multiply(camera, node.absoluteTransform, m);
     setProjectionUniform(gl, m);
     calculateNormals(gl, m);
-    Renderer.renderEntity(gl, node.object);
+    Ti.Renderer.renderEntity(gl, node.object);
   }
 
   var children = node.children;

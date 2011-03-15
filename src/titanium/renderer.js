@@ -1,11 +1,10 @@
 
-function Renderer() {
-}
+Ti.Renderer = {};
 
 //===----------------------------------------------------------------------===//
 // renderEntity
 //===----------------------------------------------------------------------===//
-Renderer.renderEntity = function(gl, ent) {
+Ti.Renderer.renderEntity = function(gl, ent) {
   gl.bindTexture(gl.TEXTURE_2D, ent.texture);
   if (ent.geometry) {
     ent.geometry.bind(gl);

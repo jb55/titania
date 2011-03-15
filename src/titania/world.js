@@ -16,7 +16,7 @@ function World(elem, vshader, fshader, fps) {
   this.block_depth = 4;
   this.entities = [];
   this.input = new Input();
-  this.scene = new Scene();
+  this.scene = new Ti.Scene();
   var canvas = document.getElementById(elem);
   canvas.width = this.width;
   canvas.height = this.height;
@@ -71,19 +71,19 @@ function initTestWorld(world) {
   world.map = test_map;
   world.terrain.loadMap(gl, world.map);
   
-  var cubeGeometry = Geometry.copy(world.terrain.geometry);
+  var cubeGeometry = Ti.Geometry.copy(world.terrain.geometry);
   cubeGeometry.numElements = 36;
 
   // our root scene node
   var rootNode = world.scene.getRootNode();
 
   // attach terrain to root scene node
-  var terrainNode = new SceneNode();
+  var terrainNode = new Ti.SceneNode();
   terrainNode.attachObject(world.terrain);
   rootNode.attachObject(terrainNode);
 
   // attach the player to the root scene node
-  var playerNode = new SceneNode();
+  var playerNode = new Ti.SceneNode();
   terrainNode.attachObject(playerNode);
 
   var player = world.player = createPlayer(gl, playerNode, cubeGeometry);

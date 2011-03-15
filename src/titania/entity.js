@@ -52,7 +52,7 @@ function createPlayer(gl, playerNode, geometry) {
     var limb = new Entity();
     limb.texture = getTexture(gl, 'terrain');
     limb.geometry = geometry;
-    var limbNode = new SceneNode();
+    var limbNode = new Ti.SceneNode();
     limbNode.setScale(scale);
     limbNode.setPosition(position);
     limbNode.attachObject(limb);
@@ -97,7 +97,7 @@ function createPerspectiveCamera(width, height, fov, depth) {
 // createCamera
 //===----------------------------------------------------------------------===//
 function createCamera(frustum) {
-  var camera = new SceneNode();
+  var camera = new Ti.SceneNode();
   camera.frustum = mat4.create(frustum);
 
   camera.getView = function() {

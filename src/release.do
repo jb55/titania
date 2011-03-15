@@ -1,3 +1,1 @@
-redo-always
-redo-ifchange titania_release.js
-ln -sf titania_release.js titania.js
+redo-ifchange titania/release titanium/release

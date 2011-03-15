@@ -1,1 +1,1 @@
-redo-ifchange debug
+redo-ifchange titania/all titanium/all

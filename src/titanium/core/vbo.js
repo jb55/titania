@@ -3,7 +3,7 @@
 //===----------------------------------------------------------------------===//
 // VBO
 //===----------------------------------------------------------------------===//
-function VBO(gl, elems, options) {
+Ti.VBO = function(gl, elems, options) {
   console.log(options);
   var usage = options.usage || gl.STATIC_DRAW;
   this.type = options.type || gl.ARRAY_BUFFER;
@@ -21,8 +21,8 @@ function VBO(gl, elems, options) {
 //===----------------------------------------------------------------------===//
 // VBO.createNormalBuffer
 //===----------------------------------------------------------------------===//
-VBO.createNormalBuffer = function(gl, elems, options) {
-  return new VBO(gl, elems, utils.merge({
+Ti.VBO.createNormalBuffer = function(gl, elems, options) {
+  return new Ti.VBO(gl, elems, Ti.utils.merge({
     components: 3, 
     slot: 0
   }, options));
@@ -32,8 +32,8 @@ VBO.createNormalBuffer = function(gl, elems, options) {
 //===----------------------------------------------------------------------===//
 // VBO.createTexCoordBuffer
 //===----------------------------------------------------------------------===//
-VBO.createTexCoordBuffer = function(gl, elems, options) {
-  return new VBO(gl, elems, utils.merge({
+Ti.VBO.createTexCoordBuffer = function(gl, elems, options) {
+  return new Ti.VBO(gl, elems, Ti.utils.merge({
     components: 2, 
     slot: 1
   }, options));
@@ -43,8 +43,8 @@ VBO.createTexCoordBuffer = function(gl, elems, options) {
 //===----------------------------------------------------------------------===//
 // VBO.createVertexBuffer
 //===----------------------------------------------------------------------===//
-VBO.createVertexBuffer = function(gl, elems, options) {
-  return new VBO(gl, elems, utils.merge({
+Ti.VBO.createVertexBuffer = function(gl, elems, options) {
+  return new Ti.VBO(gl, elems, Ti.utils.merge({
     components: 3, 
     slot: 2
   }, options)); 
@@ -54,8 +54,8 @@ VBO.createVertexBuffer = function(gl, elems, options) {
 //===----------------------------------------------------------------------===//
 // VBO.createIndexBuffer
 //===----------------------------------------------------------------------===//
-VBO.createIndexBuffer = function(gl, elems, options) {
-  return new VBO(gl, elems, utils.merge({
+Ti.VBO.createIndexBuffer = function(gl, elems, options) {
+  return new Ti.VBO(gl, elems, Ti.utils.merge({
     type: gl.ELEMENT_ARRAY_BUFFER
   }, options));
 }
@@ -64,12 +64,12 @@ VBO.createIndexBuffer = function(gl, elems, options) {
 //===----------------------------------------------------------------------===//
 // VBO.bind
 //===----------------------------------------------------------------------===//
-VBO.prototype.bind = function(gl) {
-  if (!VBO.lastBinds)
-    VBO.lastBinds = {};
+Ti.VBO.prototype.bind = function(gl) {
+  if (!Ti.VBO.lastBinds)
+    Ti.VBO.lastBinds = {};
 
   // lazy bind
-  if (this.buffer == VBO.lastBinds[this.slot])
+  if (this.buffer == Ti.VBO.lastBinds[this.slot])
     return;
 
   if (this.type == gl.ELEMENT_ARRAY_BUFFER) {
@@ -80,14 +80,14 @@ VBO.prototype.bind = function(gl) {
     gl.vertexAttribPointer(this.slot, this.components, gl.FLOAT, false, 0, 0);
   }
 
-  VBO.lastBinds[this.slot] = this.buffer;
+  Ti.VBO.lastBinds[this.slot] = this.buffer;
 }
 
 
 //===----------------------------------------------------------------------===//
 // VBO.update
 //===----------------------------------------------------------------------===//
-VBO.prototype.update = function(data, offset) {
+Ti.VBO.prototype.update = function(data, offset) {
   var needsRealloc = data.length + offset > buffer.length;
   gl.bindBuffer(this.type, this.buffer);
 
@@ -100,7 +100,7 @@ VBO.prototype.update = function(data, offset) {
 // updateBuffer
 //   Makes changes to a vertex buffer object
 //===----------------------------------------------------------------------===//
-function updateBuffer(gl, bufferType, buffer, offset, data, usage) {
+Ti.VBO.updateBuffer = function(gl, bufferType, buffer, offset, data, usage) {
   if (!needsRealloc) {
     gl.bufferData(bufferType, null, usage || gl.DYNAMIC_DRAW);
   }
