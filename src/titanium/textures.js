@@ -6,3 +6,4 @@ function getTexture(gl, textureName) {
      loadImageTexture(gl, 'img/' + textureName + '.png'));
   return texture;
 }
+
