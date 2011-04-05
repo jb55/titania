@@ -15,7 +15,7 @@ function World(elem, vshader, fshader, fps) {
   this.block_height = 20;
   this.block_depth = 4;
   this.entities = [];
-  this.input = new Input();
+  this.input = new Ti.Input();
   this.scene = new Ti.Scene();
   var canvas = document.getElementById(elem);
   canvas.width = this.width;
@@ -323,7 +323,7 @@ World.prototype.setupRenderer = function(gl) {
   //var frustum = mat4.ortho(size, -size, -size*0.6, size*0.6, -40, 100);
   var frustum = mat4.perspective(45 /* fov */, this.width / this.height, 1, 100);
   mat4.multiply(frustum, iso, gl.projectionMatrix);
-  this.camera = createCamera(gl.projectionMatrix);
+  this.camera = Ti.Camera.create(gl.projectionMatrix);
 
   // zoom out a bit
   this.camera.translate([-5, -10, -5]);

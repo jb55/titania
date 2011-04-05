@@ -205,7 +205,7 @@ Ti.Scene.prototype.update = function() {
 // Scene.render
 //===----------------------------------------------------------------------===//
 Ti.Scene.prototype.render = function(gl, camera) {
-  this.renderNode(gl, this.getRootNode(), camera.getView(), Ti.Scene.m);
+  this.renderNode(gl, this.getRootNode(), camera.worldMatrix(), Ti.Scene.m);
 }
 
 

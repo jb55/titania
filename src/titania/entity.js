@@ -48,6 +48,7 @@ function createPlayer(gl, playerNode, geometry) {
 
   playerNode.attachObject(player);
 
+
   function attachLimb(scale, position) {
     var limb = new Entity();
     limb.texture = getTexture(gl, 'terrain');
@@ -88,25 +89,4 @@ function createPlayer(gl, playerNode, geometry) {
 // createPerspectiveCamera
 //===----------------------------------------------------------------------===//
 function createPerspectiveCamera(width, height, fov, depth) {
-  var m = perspectiveMatrix(width, height, fov, depth);
-  var camera = createCamera(m);
-  return camera;
-}
-
-//===----------------------------------------------------------------------===//
-// createCamera
-//===----------------------------------------------------------------------===//
-function createCamera(frustum) {
-  var camera = new Ti.SceneNode();
-  camera.frustum = mat4.create(frustum);
-
-  camera.getView = function() {
-    return camera.absoluteTransform;
-  }
-
-  camera.customUpdate = function(rel) {
-    mat4.multiply(camera.frustum, rel, this.relativeTransform);
-  }
-
-  return camera;
 }

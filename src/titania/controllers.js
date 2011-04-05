@@ -4,7 +4,7 @@
 // InputController
 //===----------------------------------------------------------------------===//
 function InputController(node, moveAmount, input, flags) {
-  this.input = input || new Input();
+  this.input = input || new Ti.Input();
   this.flags = flags || InputController.DEFAULT;
   this.node = node;
   this.getMoveAmount = !(moveAmount instanceof Function) ?
