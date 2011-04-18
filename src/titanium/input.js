@@ -2,11 +2,15 @@
 //===----------------------------------------------------------------------===//
 // Input
 //===----------------------------------------------------------------------===//
-Ti.Input = function() {
+Ti.Input = function(ctx) {
   this.keyboard = {};
   var self = this;
   this.mousedown = false;
   this.keydown = true;
+  this.clickHandlers = [];
+
+  if (!ctx)
+    ctx = document;
 
   // this is handling WASD, and arrows keys
   function update_keyboard(e, val) {
@@ -30,31 +34,33 @@ Ti.Input = function() {
     }
   };
 
-  document.ontouchstart = function(event) {
+  ctx.ontouchstart = function(event) {
     self.mousedown = true;
   }
 
-  document.ontouchend = function(event) {
+  ctx.ontouchend = function(event) {
     self.mousedown = false;
   }
 
-  document.ontouchmove = function(event) {}
+  ctx.ontouchmove = function(event) {}
 
-  document.onmousedown = function(event) {
+  ctx.onmousedown = function(event) {
     self.mousedown = true;
   }
 
-  document.onmouseup = function(event) {
+  ctx.onmouseup = function(event) {
     self.mousedown = false;
   }
 
-  document.onclick = function(event) {
-    //self.click(event);
+  ctx.onclick = function(event) {
+    var x = self.clickX = event.layerX;
+    var y = self.clickY = event.layerY;
+    self.clickHandlers.forEach(function(fn){ fn(x, y); });
   }
 
-  document.onmousemove = function(event) {
-    self.xmouse = event.clientX;
-    self.ymouse = event.clientY;
+  ctx.onmousemove = function(event) {
+    self.mouseX = event.clientX;
+    self.mouseY = event.clientY;
   }
 
   document.onkeydown = function(e) {
@@ -70,7 +76,7 @@ Ti.Input = function() {
   };
 
   // can be used to avoid key jamming
-  document.onkeypress = function(e) {
+  ctx.onkeypress = function(e) {
   };
 
   // make sure self the keyboard is rested when
@@ -82,3 +88,7 @@ Ti.Input = function() {
   }
 }
 
+Ti.Input.prototype.addHandler = function(action, fn) {
+  if (action === "click")
+    this.clickHandlers.push(fn);
+};

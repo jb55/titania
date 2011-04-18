@@ -4,7 +4,6 @@
 // VBO
 //===----------------------------------------------------------------------===//
 Ti.VBO = function(gl, elems, options) {
-  console.log(options);
   var usage = options.usage || gl.STATIC_DRAW;
   this.type = options.type || gl.ARRAY_BUFFER;
   this.slot = "slot" in options ? options.slot : -1;

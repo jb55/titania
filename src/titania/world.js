@@ -15,9 +15,10 @@ function World(elem, vshader, fshader, fps) {
   this.block_height = 20;
   this.block_depth = 4;
   this.entities = [];
-  this.input = new Ti.Input();
   this.scene = new Ti.Scene();
   var canvas = document.getElementById(elem);
+  this.input = new Ti.Input(canvas);
+  this.events = new WorldEvents(this.input, this);
   canvas.width = this.width;
   canvas.height = this.height;
 
@@ -107,6 +108,11 @@ function initTestWorld(world) {
   var bobbingController = 
     new BobbingController(playerNode, 0.1, 0.01, 2);
 
+  //test click move
+  world.events.on("clickWorld", function(v, x, y){
+    console.log(x, y, v.toString());
+    playerNode.setPosition(v);
+  });
 }
 
 //===----------------------------------------------------------------------===//
@@ -314,7 +320,6 @@ World.prototype.setupRenderer = function(gl) {
 
   // set up the isometric projection
   var iso = mat4.create();
-  gl.projectionMatrix = mat4.create();
   mat4.identity(iso);
   mat4.rotate(iso, (Math.PI/180)*48.264, [1, 0, 0]);
   mat4.rotate(iso, (Math.PI/180)*-45, [0, 1, 0]);
@@ -322,8 +327,8 @@ World.prototype.setupRenderer = function(gl) {
 
   //var frustum = mat4.ortho(size, -size, -size*0.6, size*0.6, -40, 100);
   var frustum = mat4.perspective(45 /* fov */, this.width / this.height, 1, 100);
-  mat4.multiply(frustum, iso, gl.projectionMatrix);
-  this.camera = Ti.Camera.create(gl.projectionMatrix);
+  mat4.multiply(frustum, iso);
+  this.camera = Ti.Camera.create(frustum);
 
   // zoom out a bit
   this.camera.translate([-5, -10, -5]);
