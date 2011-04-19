@@ -21,6 +21,9 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
   this.xn = xn;
   this.yn = yn;
   this.zn = zn;
+  this.gridSize = 1.0;
+
+  this.blocks = data;
 
   var numCubes = zn*yn*xn;
   var numSides = 6;
@@ -88,6 +91,67 @@ BlockTerrain.prototype.render = function(gl) {
   this.geometry.render(gl, gl.TRIANGLES, gl.UNSIGNED_SHORT);
 }
 
+
+//===----------------------------------------------------------------------===//
+// BlockTerrain.getBlock
+//===----------------------------------------------------------------------===//
+BlockTerrain.prototype.getBlock = function(vec) {
+  if (this.outOfBounds(vec)) return 0;
+
+  var x = vec[0]
+    , y = vec[1]
+    , z = vec[2];
+
+  return this.blocks[y][x][z];
+}
+
+
+//===----------------------------------------------------------------------===//
+// BlockTerrain.surface
+//   finds a surface
+//===----------------------------------------------------------------------===//
+BlockTerrain.prototype.surface = function(vec) {
+  var block = this.getBlock(vec)
+    , origY = vec[1]
+    , isDown = Block.isPassible(block)
+    , dir = isDown ? -1 : 1
+    , cnd = isDown ? 
+      function(b) { return Block.isPassible(b); } :
+      function(b) { return !Block.isPassible(b); }
+
+  // if in passible, look down. If in impassible, look up.
+  while (cnd(block)) {
+    vec[1] += dir;
+    if (this.outOfBounds(vec)) {
+      return origY;
+    }
+    block = this.getBlock(vec);
+  }
+
+  if (isDown) {
+    vec[1] += 1;
+  }
+
+  return vec[1];
+}
+
+
+//===----------------------------------------------------------------------===//
+// BlockTerrain.outOfBounds
+//   checks to see if a point is out of bounds
+//===----------------------------------------------------------------------===//
+BlockTerrain.prototype.outOfBounds = function(vec) {
+  var x = vec[0]
+    , y = vec[1]
+    , z = vec[2];
+
+  return y < 0 || 
+         x < 0 || 
+         z < 0 ||
+         y >= this.yn ||
+         x >= this.xn ||
+         z >= this.zn;
+};
 
 //===----------------------------------------------------------------------===//
 // buildGrid

@@ -113,3 +113,35 @@ BobbingController.prototype.update = function() {
   this.node.rotate(this.spin, [0, 0, 1]);
   this.node.translate(v);
 }
+
+
+//===----------------------------------------------------------------------===//
+// CollisionController
+//===----------------------------------------------------------------------===//
+function CollisionController(terrain, entity) {
+  this.ent = entity;
+  this.terrain = terrain;
+}
+
+
+//===----------------------------------------------------------------------===//
+// CollisionController.update
+//===----------------------------------------------------------------------===//
+CollisionController.prototype.update = function() {
+  var ent = this.ent
+    , node = ent.sceneNode
+    , terrain = this.terrain
+    , hw = terrain.gridSize
+    , pos = Entity.getGridPosition(terrain, ent)
+    , block = terrain.getBlock(pos)
+    , targetHeight = terrain.surface(pos)
+    , cap = 2
+    , cappedHeight = targetHeight > cap ? cap : targetHeight
+    , pushX = 0
+    , pushY = cappedHeight - node.position[1]
+    , pushZ = 0
+    , push = vec3.create([pushX, pushY, pushZ]);
+
+  node.translate(push);
+};
+

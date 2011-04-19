@@ -21,7 +21,6 @@ Entity.prototype.updateControllers = function() {
   }
 }
 
-
 //===----------------------------------------------------------------------===//
 // Entity.update
 //===----------------------------------------------------------------------===//
@@ -29,6 +28,32 @@ Entity.prototype.update = function() {
   this.updateControllers();
 }
 
+
+//===----------------------------------------------------------------------===//
+// Entity.getWidth
+//===----------------------------------------------------------------------===//
+Entity.prototype.getWidth = function() {
+  return 1.0;
+};
+
+
+//===----------------------------------------------------------------------===//
+// Entity.getGridPosition
+//   @static
+//===----------------------------------------------------------------------===//
+Entity.getGridPosition = function(terrain, ent) {
+  var gs = terrain.gridSize;
+  node = ent.sceneNode;
+  assert(node, "Entity has no sceneNode");
+  var p = node.position;
+  var hw = ent.getWidth() / 2;
+
+  var x = Math.floor(p[0] + hw)
+    , y = Math.floor(p[1])
+    , z = Math.floor(p[2] + hw);
+
+  return vec3.create([x, y, z]);
+}
 
 //===----------------------------------------------------------------------===//
 // Entity.render

@@ -4,7 +4,6 @@ SEARCH_DEPS=$(find . -type f -name '*.js' | \
     -e "/webgl.js/d" \
     -e "/titanium_release.js/d" \
     -e "/titanium_debug.js/d" \
-    -e "/debug\//d" \
     -e "/titanium.js/d"
 )
 DEPS="ti.js util/webgl.js $SEARCH_DEPS"

@@ -63,6 +63,16 @@ vec3.create = function(vec) {
 	return dest;
 };
 
+vec3.ZERO = vec3.create([0, 0, 0]);
+
+vec3.equals = function(v1, v2, tolerance) {
+  tolerance = tolerance || 0.0001;
+  return 
+    (Math.abs(v1[0] - v2[0]) <= tolerance) &&
+    (Math.abs(v1[1] - v2[1]) <= tolerance) &&
+    (Math.abs(v1[2] - v2[2]) <= tolerance)
+}
+
 /*
  * vec3.set
  * Copies the values of one vec3 to another

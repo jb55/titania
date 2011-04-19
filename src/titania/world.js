@@ -105,13 +105,14 @@ function initTestWorld(world) {
   player.movement_controller = 
     new InputController(playerNode, 0.12, world.input);
 
+  world.scene.attachController(
+    new CollisionController(world.terrain, player));
+
   var bobbingController = 
     new BobbingController(playerNode, 0.1, 0.01, 2);
 
   //test click move
   world.events.on("clickWorld", function(v, x, y){
-    console.log(x, y, v.toString());
-    playerNode.setPosition(v);
   });
 }
 

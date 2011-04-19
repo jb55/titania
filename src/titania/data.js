@@ -2,15 +2,7 @@
 //===----------------------------------------------------------------------===//
 // Data
 //===----------------------------------------------------------------------===//
-BLOCKS = [
-   { name: 'air', transparent: true, texid: 11 }
-  ,{ name: 'grass', texid: 0, sideTex: 3  }
-  ,{ name: 'smoothstone', clip: true, texid: 6 }
-  ,{ name: 'dirt', texid: 2 }
-  ,{ name: 'stone', texid: 1 }
-];
-
-OBJECTS = [
+var OBJECTS = [
   { name: 'player' }
 ];
 
