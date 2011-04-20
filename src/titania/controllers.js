@@ -135,10 +135,17 @@ CollisionController.prototype.update = function() {
     , pos = Entity.getGridPosition(terrain, ent)
     , block = terrain.getBlock(pos)
     , targetHeight = terrain.surface(pos)
-    , cap = 2
-    , cappedHeight = targetHeight > cap ? cap : targetHeight
-    , pushX = 0
-    , pushY = cappedHeight - node.position[1]
+    , cap = 1
+    , relativeHeight = targetHeight - pos[1];
+
+  console.log(targetHeight, relativeHeight, pos.toString());
+
+  if (relativeHeight > cap) {
+    return;
+  }
+
+  var pushX = 0
+    , pushY = targetHeight - node.position[1]
     , pushZ = 0
     , push = vec3.create([pushX, pushY, pushZ]);
 

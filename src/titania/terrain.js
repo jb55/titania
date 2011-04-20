@@ -112,7 +112,7 @@ BlockTerrain.prototype.getBlock = function(vec) {
 //===----------------------------------------------------------------------===//
 BlockTerrain.prototype.surface = function(vec) {
   var block = this.getBlock(vec)
-    , origY = vec[1]
+    , v = vec3.create(vec)
     , isDown = Block.isPassible(block)
     , dir = isDown ? -1 : 1
     , cnd = isDown ? 
@@ -121,18 +121,18 @@ BlockTerrain.prototype.surface = function(vec) {
 
   // if in passible, look down. If in impassible, look up.
   while (cnd(block)) {
-    vec[1] += dir;
-    if (this.outOfBounds(vec)) {
-      return origY;
+    v[1] += dir;
+    if (this.outOfBounds(v)) {
+      return vec[1];
     }
-    block = this.getBlock(vec);
+    block = this.getBlock(v);
   }
 
   if (isDown) {
-    vec[1] += 1;
+    v[1] += 1;
   }
 
-  return vec[1];
+  return v[1];
 }
 
 
