@@ -176,56 +176,7 @@ World.prototype.render = function() {
 // World.preload
 //===----------------------------------------------------------------------===//
 World.prototype.preload = function(gl, done) {
-  var self = this;
-  this.c = 0;
-  var len = 0;
-
-  function onLoadAsset(asset) {
-    // generate texture
-    var texture = generateTexture(gl, asset.img, texture);
-    asset.texture = texture;
-
-    self.c += 1;
-    if (self.c == len) {
-      done();
-    }
-  }
-
-  function doEnt(entity) {
-    var assets = entity.assets || [];
-    entity.assets = assets;
-
-    if (entity.transparent) {
-      return;
-    }
-
-    function doAsset(src) {
-      var asset = {};
-      len += 1;
-      asset.img = new Image();
-      asset.img.onload = function() { onLoadAsset(asset); };
-      asset.img.src = src;
-      assets.push(asset);
-    }
-
-    doAsset("img/" + entity.name + '.png');
-
-    if (entity.side) {
-      doAsset("img/" + entity.name + '_side.png');
-    }
-
-  }
-
-  // Blocks
-  for (var i = 0; i < BLOCKS.length; i++) {
-    doEnt(BLOCKS[i]);
-  };
-
-  // Objects
-  for (var i = 0; i < OBJECTS.length; i++) {
-    doEnt(OBJECTS[i]);
-  };
-
+  done()
 };
 
 

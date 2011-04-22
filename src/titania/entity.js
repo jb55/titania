@@ -30,9 +30,41 @@ Entity.prototype.update = function() {
 
 
 //===----------------------------------------------------------------------===//
-// Entity.getWidth
+// Entity.right
 //===----------------------------------------------------------------------===//
-Entity.prototype.getWidth = function() {
+Entity.prototype.right = function() {
+  return this.sceneNode.position[0] + this.width();
+};
+
+
+//===----------------------------------------------------------------------===//
+// Entity.left
+//===----------------------------------------------------------------------===//
+Entity.prototype.left = function() {
+  return this.sceneNode.position[0];
+};
+
+
+//===----------------------------------------------------------------------===//
+// Entity.hw
+//===----------------------------------------------------------------------===//
+Entity.prototype.hw = function() {
+  return this.width() / 2;
+};
+
+
+//===----------------------------------------------------------------------===//
+// Entity.bottom
+//===----------------------------------------------------------------------===//
+Entity.prototype.bottom = function() {
+  return this.sceneNode.position[1];
+};
+
+
+//===----------------------------------------------------------------------===//
+// Entity.width
+//===----------------------------------------------------------------------===//
+Entity.prototype.width = function() {
   return 1.0;
 };
 
@@ -46,7 +78,7 @@ Entity.getGridPosition = function(terrain, ent) {
   node = ent.sceneNode;
   assert(node, "Entity has no sceneNode");
   var p = node.position;
-  var hw = ent.getWidth() / 2;
+  var hw = ent.width() / 2;
 
   var x = Math.floor(p[0] + hw)
     , y = Math.floor(p[1])
@@ -86,10 +118,10 @@ function createPlayer(gl, playerNode, geometry) {
     return limb;
   }
 
-  var bodyScale = 1.75;
-  var bodyThickness = 0.4;
+  var bodyScale = 1.5;
+  var bodyThickness = 0.6;
   var headSize = 0.4;
-  var armThickness = 0.1;
+  var armThickness = 0.2;
   var armPos = -bodyThickness-armThickness;
 
   player.body = attachLimb(

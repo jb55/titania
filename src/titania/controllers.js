@@ -131,22 +131,18 @@ CollisionController.prototype.update = function() {
   var ent = this.ent
     , node = ent.sceneNode
     , terrain = this.terrain
-    , hw = terrain.gridSize
+    , hw = terrain.gridSize / 2
     , pos = Entity.getGridPosition(terrain, ent)
     , block = terrain.getBlock(pos)
     , targetHeight = terrain.surface(pos)
     , cap = 1
-    , relativeHeight = targetHeight - pos[1];
+    , relativeHeight = targetHeight - pos[1]
+    , skipY = relativeHeight > cap
+    , passible = Block.isPassible(block) || !skipY;
 
-  console.log(targetHeight, relativeHeight, pos.toString());
-
-  if (relativeHeight > cap) {
-    return;
-  }
-
-  var pushX = 0
-    , pushY = targetHeight - node.position[1]
-    , pushZ = 0
+  var pushX = 0 /* passible? 0 : (node.position[0] + ent.hw()) - (pos[0] + hw) */
+    , pushY = skipY? 0 : targetHeight - ent.bottom()
+    , pushZ = 0 /* passible? 0 : (node.position[2] + ent.hw()) - (pos[2] + hw) */
     , push = vec3.create([pushX, pushY, pushZ]);
 
   node.translate(push);
