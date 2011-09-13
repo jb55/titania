@@ -82,6 +82,7 @@ function initTestWorld(world) {
   var terrainNode = new Ti.SceneNode();
   terrainNode.attachObject(world.terrain);
   rootNode.attachObject(terrainNode);
+  world.terrain.attachChunks(terrainNode);
 
   // attach the player to the root scene node
   var playerNode = new Ti.SceneNode();

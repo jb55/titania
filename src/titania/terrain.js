@@ -35,16 +35,34 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
   var indices = new Uint16Array(numCubes * numSides * 6);
   var texCoords = new Float32Array(numVerts * 2);
 
-  var numElements = 
+  var numElements =
     buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals);
 
   indices.options = { usage: gl.DYNAMIC_DRAW };
 
-  this.geometry = 
+  var geo = this.geometry =
     new Ti.Geometry(gl, verts, texCoords, normals, indices, numElements);
 
-  
+  this.chunks = [this, this, this, this];
 }
+
+BlockTerrain.prototype.attachChunks = function(root) {
+  var left = new Ti.SceneNode();
+  left.translate(vec3.create([-this.xn, 0, 0]));
+  left.attachObject(this.chunks[0]);
+
+  var right = new Ti.SceneNode();
+  right.translate(vec3.create([0, 0, this.zn]));
+  right.attachObject(this.chunks[2]);
+
+  var down = new Ti.SceneNode();
+  down.translate(vec3.create([-this.xn, 0, this.zn]));
+  down.attachObject(this.chunks[1]);
+
+  root.attachObject(left);
+  root.attachObject(right);
+  root.attachObject(down);
+};
 
 //===----------------------------------------------------------------------===//
 // clamp
@@ -87,8 +105,17 @@ function texCoordFromId(id, xn, u, v, dest, ind) {
 // BlockTerrain.render
 //   Bind and render the terrain
 //===----------------------------------------------------------------------===//
+BlockTerrain.renderGeo = function(gl, geo) {
+  geo.render(gl, gl.TRIANGLES, gl.UNSIGNED_SHORT);
+}
+
+
+//===----------------------------------------------------------------------===//
+// BlockTerrain.render
+//   Bind and render the terrain
+//===----------------------------------------------------------------------===//
 BlockTerrain.prototype.render = function(gl) {
-  this.geometry.render(gl, gl.TRIANGLES, gl.UNSIGNED_SHORT);
+  BlockTerrain.renderGeo(gl, this.geometry);
 }
 
 
@@ -115,7 +142,7 @@ BlockTerrain.prototype.surface = function(vec) {
     , v = vec3.create(vec)
     , isDown = Block.isPassible(block)
     , dir = isDown ? -1 : 1
-    , cnd = isDown ? 
+    , cnd = isDown ?
       function(b) { return Block.isPassible(b); } :
       function(b) { return !Block.isPassible(b); }
 
@@ -145,8 +172,8 @@ BlockTerrain.prototype.outOfBounds = function(vec) {
     , y = vec[1]
     , z = vec[2];
 
-  return y < 0 || 
-         x < 0 || 
+  return y < 0 ||
+         x < 0 ||
          z < 0 ||
          y >= this.yn ||
          x >= this.xn ||
@@ -265,7 +292,7 @@ function buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals) {
               cTid = tid;
             }
 
-            texCoordInd = 
+            texCoordInd =
               texCoordFromId(cTid, tilesX, tileU, tileV, texCoords, texCoordInd);
           }
         }
