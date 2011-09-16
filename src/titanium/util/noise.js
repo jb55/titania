@@ -154,7 +154,7 @@ ClassicalNoise.prototype.noise = function(x, y, z) {
 //===----------------------------------------------------------------------===//
 // SimplexNoise
 //===----------------------------------------------------------------------===//
-var SimplexNoise = function(r) {
+function SimplexNoise(r) {
   this.seed(r);
 };
 

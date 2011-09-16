@@ -6,6 +6,25 @@ function BlockTerrain(texture) {
   this.texture = texture;
 }
 
+//===----------------------------------------------------------------------===//
+// BlockTerrain.worldGenFunction
+//   returns a block function(x, y, z) that generates a world
+//
+// noiseFn - a 3d noise function
+//===----------------------------------------------------------------------===//
+BlockTerrain.worldGenFn = function(noiseFn) {
+  return function worldGen(x, y, z) {
+    var val = noiseFn(x, y, z);
+
+    if (val > 0) {
+      return BLOCK_STONE;
+    }
+
+    return BLOCK_AIR;
+  }
+};
+
+
 
 //===----------------------------------------------------------------------===//
 // BlockTerrain.importMap
@@ -35,8 +54,14 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
   var indices = new Uint16Array(numCubes * numSides * 6);
   var texCoords = new Float32Array(numVerts * 2);
 
+  var blockFn = this.getBlock;
+  var seedFn = Ti.Math.seedRandom('glacier');
+  var noise = Ti.getNoiseFunctions('simplex', seedFn);
+
+  blockFn = BlockTerrain.worldGenFn(noise.noise3d.bind(noise));
+
   var numElements =
-    buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals);
+    buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals, blockFn);
 
   indices.options = { usage: gl.DYNAMIC_DRAW };
 
@@ -180,21 +205,18 @@ BlockTerrain.prototype.outOfBounds = function(vec) {
          z >= this.zn;
 };
 
+
 //===----------------------------------------------------------------------===//
 // buildGrid
 //   builds an xn-by-yn-by-zn grid of vertices
 //===----------------------------------------------------------------------===//
-function buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals) {
+function buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals, get) {
   var vertInd = 0;
   var indexInd = 0;
   var normalsInd = 0;
   var texCoordInd = 0;
   var startIndex = 0;
   var n = 0.5;
-
-  var dyn = data.length;
-  var dxn = data[0].length;
-  var dzn = data[0][0].length;
 
   //    v6----- v5
   //   /|      /|
@@ -233,14 +255,6 @@ function buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals) {
   );
 
    // texCoords -> top right, top left, bottom left, bottom right
-
-  // get block from map data
-  function get(x, y, z) {
-    if (y >= dyn) return 0;
-    if (x >= dxn) return 0;
-    if (z >= dzn) return 0;
-    return data[y][x][z];
-  }
 
   var textureWidth = 512
     , textureHeight = 512
