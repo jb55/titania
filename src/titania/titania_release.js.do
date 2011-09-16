@@ -5,5 +5,5 @@ DEPS=$(find . -type f -name '*.js' | \
     -e "/titania_debug.js/d" \
 )
 redo-ifchange ../titanium/titanium_release.js $DEPS
-COMPRESSOR="closure --compilation_level ADVANCED_OPTIMIZATIONS"
+COMPRESSOR="closure"
 cat ../titanium/titanium_release.js $DEPS | $COMPRESSOR > $3

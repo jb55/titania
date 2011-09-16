@@ -8,5 +8,5 @@ SEARCH_DEPS=$(find . -type f -name '*.js' | \
 )
 DEPS="ti.js util/webgl.js $SEARCH_DEPS"
 redo-ifchange $DEPS
-COMPRESSOR="closure --compilation_level ADVANCED_OPTIMIZATIONS"
+COMPRESSOR="closure"
 cat $DEPS | $COMPRESSOR > $3
