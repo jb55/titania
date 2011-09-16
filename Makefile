@@ -7,5 +7,8 @@ release:
 	redo release
 
 deploy:
-	rsync -arvuz `pwd`/ jb55.com:jb55/public/titania
+	redo deploy
+
+deploy_release:
+	redo deploy_release
 
