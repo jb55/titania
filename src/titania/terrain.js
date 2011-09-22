@@ -2,8 +2,24 @@
 //===----------------------------------------------------------------------===//
 // BlockTerrain
 //===----------------------------------------------------------------------===//
-function BlockTerrain(texture) {
+function BlockTerrain(texture, worldEvents) {
   this.texture = texture;
+  this.chunkBuilder = function() {}
+
+  this.ys = 6;
+  this.xs = 20;
+  this.zs = 20;
+
+  worldEvents.on('movement', function(moveEvent){
+    var pos = moveEvent.pos;
+    var chunks = this.getChunksToLoad(pos);
+
+    if (chunks.length > 0) {
+      for (var i = 0; i < chunks.length; ++i) {
+        this.chunkBuilder(chunks[i]);
+      }
+    }
+  });
 }
 
 
@@ -15,7 +31,7 @@ function BlockTerrain(texture) {
 //===----------------------------------------------------------------------===//
 BlockTerrain.worldGenFn = function(noiseFn) {
   return function(x, y, z) {
-    var scale = 0.1;
+    var scale = 0.15;
     var val = noiseFn(x * scale, y * scale, z * scale);
 
     if (val > 0) {
@@ -31,46 +47,26 @@ BlockTerrain.worldGenFn = function(noiseFn) {
 // BlockTerrain.importMap
 //===----------------------------------------------------------------------===//
 BlockTerrain.prototype.loadMap = function(gl, data) {
-  var yn = data.length;
-  if (!yn) return;
-  var xn = data[0].length;
-  if (!xn) return;
-  var zn = data[0][0].length;
-  if (!zn) return;
-
-  this.xn = xn;
-  this.yn = yn;
-  this.zn = zn;
-  this.gridSize = 1.0;
-
-  this.blocks = data;
-
-  var numCubes = zn*yn*xn;
-  var numSides = 6;
-  var vertPerSide = 4;
-  var numVerts = numCubes * numSides * vertPerSide;
-
-  var verts = new Float32Array(numVerts * 3);
-  var normals = new Float32Array(numVerts * 3);
-  var indices = new Uint16Array(numCubes * numSides * 6);
-  var texCoords = new Float32Array(numVerts * 2);
-
-  var blockFn = this.getBlock;
-  var seedFn = Ti.Math.seedRandom('glacier');
-  var noise = Ti.getNoiseFunctions('simplex');
-
-  blockFn = BlockTerrain.worldGenFn(noise.noise3d.bind(noise));
-
-  var numElements =
-    buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals, blockFn);
-
-  indices.options = { usage: gl.DYNAMIC_DRAW };
-
-  var geo = this.geometry =
-    new Ti.Geometry(gl, verts, texCoords, normals, indices, numElements);
-
-  this.chunks = [this, this, this, this];
 }
+
+
+
+//===----------------------------------------------------------------------===//
+// BlockTerrain.loadNoiseMap
+//   load a 3d-noise-based map
+//===----------------------------------------------------------------------===//
+BlockTerrain.prototype.loadNoiseMap = function(gl, seed) {
+  var seedFn = Ti.Math.seedRandom(seed);
+  var noise = Ti.getNoiseFunctions('simplex', seedFn);
+  var blockFn = BlockTerrain.worldGenFn(noise.noise3d.bind(noise));
+
+  // tell the chunk builder to build chunks using our noise function
+  this.chunkBuilder = function(chunk){
+    return chunk.build(gl, blockFn);
+  }
+
+}
+
 
 
 //===----------------------------------------------------------------------===//
@@ -79,15 +75,15 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
 //===----------------------------------------------------------------------===//
 BlockTerrain.prototype.attachChunks = function(root) {
   var left = new Ti.SceneNode();
-  left.translate(vec3.create([-this.xn, 0, 0]));
+  left.translate(vec3.create([-this.xs, 0, 0]));
   left.attachObject(this.chunks[0]);
 
   var right = new Ti.SceneNode();
-  right.translate(vec3.create([0, 0, this.zn]));
+  right.translate(vec3.create([0, 0, this.zs]));
   right.attachObject(this.chunks[2]);
 
   var down = new Ti.SceneNode();
-  down.translate(vec3.create([-this.xn, 0, this.zn]));
+  down.translate(vec3.create([-this.xs, 0, this.zs]));
   down.attachObject(this.chunks[1]);
 
   root.attachObject(left);
@@ -113,10 +109,10 @@ function clamp(n, size) {
 //===----------------------------------------------------------------------===//
 // texCoordFromId
 //===----------------------------------------------------------------------===//
-function texCoordFromId(id, xn, u, v, dest, ind) {
-  var lu = (id % xn) * u;
+function texCoordFromId(id, xs, u, v, dest, ind) {
+  var lu = (id % xs) * u;
   var ru = lu + u;
-  var tv = 1.0 - ((Math.floor(id / xn) * v) + v);
+  var tv = 1.0 - ((Math.floor(id / xs) * v) + v);
   var bv = tv + v;
 
   dest[ind++] = lu; // v0
@@ -208,17 +204,17 @@ BlockTerrain.prototype.outOfBounds = function(vec) {
   return y < 0 ||
          x < 0 ||
          z < 0 ||
-         y >= this.yn ||
-         x >= this.xn ||
-         z >= this.zn;
+         y >= this.ys ||
+         x >= this.xs ||
+         z >= this.zs;
 };
 
 
 //===----------------------------------------------------------------------===//
 // buildGrid
-//   builds an xn-by-yn-by-zn grid of vertices
+//   builds an xs-by-ys-by-zs grid of vertices
 //===----------------------------------------------------------------------===//
-function buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals, get) {
+function buildGrid(gl, xs, ys, zs, verts, texCoords, indices, normals, get) {
   var vertInd = 0;
   var indexInd = 0;
   var normalsInd = 0;
@@ -277,15 +273,13 @@ function buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals, get
     , tid;
 
   // foreach block
-  for (var y = 0; y < yn; y++) {
-    for (var x = 0; x < xn; x++) {
-      for (var z = 0; z < zn; z++) {
+  for (var y = 0; y < ys; y++) {
+    for (var x = 0; x < xs; x++) {
+      for (var z = 0; z < zs; z++) {
 
-        if (data) {
-          id = get(x, y, z);
-          tid = BLOCKS[id].texid;
-          sideId = BLOCKS[id].sideTex;
-        }
+        id = get(x, y, z);
+        tid = BLOCKS[id].texid;
+        sideId = BLOCKS[id].sideTex;
 
         if (x == 0 && y == 0 && z == 0) {
           tid = 9;
@@ -305,17 +299,16 @@ function buildGrid(gl, data, xn, yn, zn, verts, texCoords, indices, normals, get
             normals[normalsInd++] = boxNormals[k+2];
           }
 
-          if (data) {
+          // side faces
+          if (!(i == 24 || i == 48)) {
+            cTid = sideId || tid;
+          } else {
+            cTid = tid;
+          }
 
-            // side faces
-            if (!(i == 24 || i == 48)) {
-              cTid = sideId || tid;
-            } else {
-              cTid = tid;
-            }
+          texCoordInd =
+            texCoordFromId(cTid, tilesX, tileU, tileV, texCoords, texCoordInd);
 
-            texCoordInd =
-              texCoordFromId(cTid, tilesX, tileU, tileV, texCoords, texCoordInd);
           }
         }
 
