@@ -6,6 +6,7 @@ function BlockTerrain(texture) {
   this.texture = texture;
 }
 
+
 //===----------------------------------------------------------------------===//
 // BlockTerrain.worldGenFunction
 //   returns a block function(x, y, z) that generates a world
@@ -13,17 +14,17 @@ function BlockTerrain(texture) {
 // noiseFn - a 3d noise function
 //===----------------------------------------------------------------------===//
 BlockTerrain.worldGenFn = function(noiseFn) {
-  return function worldGen(x, y, z) {
-    var val = noiseFn(x, y, z);
+  return function(x, y, z) {
+    var scale = 0.1;
+    var val = noiseFn(x * scale, y * scale, z * scale);
 
     if (val > 0) {
-      return BLOCK_STONE;
+      return BLOCK_GRASS;
     }
 
     return BLOCK_AIR;
   }
-};
-
+}
 
 
 //===----------------------------------------------------------------------===//
@@ -56,7 +57,7 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
 
   var blockFn = this.getBlock;
   var seedFn = Ti.Math.seedRandom('glacier');
-  var noise = Ti.getNoiseFunctions('simplex', seedFn);
+  var noise = Ti.getNoiseFunctions('simplex');
 
   blockFn = BlockTerrain.worldGenFn(noise.noise3d.bind(noise));
 
@@ -71,6 +72,11 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
   this.chunks = [this, this, this, this];
 }
 
+
+//===----------------------------------------------------------------------===//
+// BlockTerrain.attachChunks
+//   attach terrain chunks to a scene node
+//===----------------------------------------------------------------------===//
 BlockTerrain.prototype.attachChunks = function(root) {
   var left = new Ti.SceneNode();
   left.translate(vec3.create([-this.xn, 0, 0]));
@@ -89,6 +95,7 @@ BlockTerrain.prototype.attachChunks = function(root) {
   root.attachObject(down);
 };
 
+
 //===----------------------------------------------------------------------===//
 // clamp
 //===----------------------------------------------------------------------===//
@@ -101,6 +108,7 @@ function clamp(n, size) {
     return n;
   }
 }
+
 
 //===----------------------------------------------------------------------===//
 // texCoordFromId
@@ -127,7 +135,7 @@ function texCoordFromId(id, xn, u, v, dest, ind) {
 }
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.render
+// BlockTerrain.renderGeo
 //   Bind and render the terrain
 //===----------------------------------------------------------------------===//
 BlockTerrain.renderGeo = function(gl, geo) {
