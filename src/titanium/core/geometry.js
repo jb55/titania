@@ -30,13 +30,13 @@ Ti.Geometry = function(gl, vertices, texCoords, normals, indices, numElements) {
 // Geometry.copy
 //   Weak copy, does not physically copy hardware buffers
 //===----------------------------------------------------------------------===//
-Ti.Geometry.copy = function(gl) {
+Ti.Geometry.copy = function(gl, geo) {
   var newGeo = new Ti.Geometry(gl);
-  newGeo.vertexBuffer = gl.vertexBuffer;
-  newGeo.indexBuffer = gl.indexBuffer;
-  newGeo.texCoordBuffer = gl.texCoordBuffer;
-  newGeo.normalBuffer = gl.normalBuffer;
-  newGeo.numElements = gl.numElements;
+  newGeo.vertexBuffer = geo.vertexBuffer;
+  newGeo.indexBuffer = geo.indexBuffer;
+  newGeo.texCoordBuffer = geo.texCoordBuffer;
+  newGeo.normalBuffer = geo.normalBuffer;
+  newGeo.numElements = geo.numElements;
   return newGeo;
 }
 

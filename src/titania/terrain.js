@@ -22,6 +22,10 @@ function BlockTerrain(texture, worldEvents) {
   });
 }
 
+BlockTerrain.prototype.getChunksToLoad = function(pos) {
+  // body...
+}
+
 
 //===----------------------------------------------------------------------===//
 // BlockTerrain.worldGenFunction
@@ -47,6 +51,7 @@ BlockTerrain.worldGenFn = function(noiseFn) {
 // BlockTerrain.importMap
 //===----------------------------------------------------------------------===//
 BlockTerrain.prototype.loadMap = function(gl, data) {
+  return this.loadNoiseMap(gl, 'test-seed');
 }
 
 
@@ -86,9 +91,9 @@ BlockTerrain.prototype.attachChunks = function(root) {
   down.translate(vec3.create([-this.xs, 0, this.zs]));
   down.attachObject(this.chunks[1]);
 
-  root.attachObject(left);
-  root.attachObject(right);
-  root.attachObject(down);
+  //root.attachObject(left);
+  //root.attachObject(right);
+  //root.attachObject(down);
 };
 
 
@@ -309,7 +314,6 @@ function buildGrid(gl, xs, ys, zs, verts, texCoords, indices, normals, get) {
           texCoordInd =
             texCoordFromId(cTid, tilesX, tileU, tileV, texCoords, texCoordInd);
 
-          }
         }
 
         if (id !== 0) {

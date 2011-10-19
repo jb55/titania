@@ -37,7 +37,7 @@ function World(elem, vshader, fshader, fps) {
   }
 
   var terrainTexture = getTexture(gl, 'terrain');
-  this.terrain = new BlockTerrain(terrainTexture);
+  this.terrain = new BlockTerrain(terrainTexture, this.events);
 
   gl.debugTexture = loadImageTexture(gl, "img/debug.png");
 
@@ -72,7 +72,7 @@ function initTestWorld(world) {
   world.map = test_map;
   world.terrain.loadMap(gl, world.map);
   
-  var cubeGeometry = Ti.Geometry.copy(world.terrain.geometry);
+  var cubeGeometry = Ti.Geometry.copy(gl, world.terrain.geometry);
   cubeGeometry.numElements = 36;
 
   // our root scene node
