@@ -26,7 +26,7 @@ function World(elem, vshader, fshader, fps) {
     vshader,
     fshader,
     [ "vNormal", "vColor", "vPosition"],
-    [1, 1, 1, 1], // clear color
+    [0, 0, 0, 1], // clear color
     10000, // depth
     false //debug
   );

@@ -42,7 +42,20 @@ Chunk.prototype.build = function(gl, genFn) {
   var zs = this.zs;
 
   var numElements =
-    buildGrid(gl, xs, ys, zs, verts, texCoords, indices, normals, genFn);
+    buildGrid(
+        gl
+      , xs
+      , ys
+      , zs
+      , this.x
+      , this.y
+      , this.z
+      , verts
+      , texCoords
+      , indices
+      , normals
+      , genFn
+    );
 
   indices.options = { usage: gl.DYNAMIC_DRAW };
 

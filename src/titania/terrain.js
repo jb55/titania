@@ -76,18 +76,35 @@ BlockTerrain.attachChunk = function(chunk, root) {
 //   A list of chunk objects to load
 //===----------------------------------------------------------------------===//
 BlockTerrain.prototype.getChunksToLoad = function(pos) {
-  if (!this.firstChunkLoaded) {
-    var firstChunk = new Chunk(
-        this.xs
-      , this.ys
-      , this.zs
-      , 0//pos[0] - Math.floor(this.xs / 2)
-      , 0//pos[1]
-      , 0//pos[2] - Math.floor(this.zs / 2)
-      , this.gridSize
-    );
 
-    return [firstChunk];
+  var self = this;
+
+  function half(x) {
+    return Math.floor(x) / 2;
+  }
+
+  function doChunk(pos) {
+    return new Chunk(
+        self.xs
+      , self.ys
+      , self.zs
+      , pos[0] - half(self.xs)
+      , pos[1]
+      , pos[2] - half(self.zs)
+      , self.gridSize
+    );
+  }
+
+  if (!this.firstChunkLoaded) {
+    var sec = vec3.create([this.xs, 0, 0]);
+    var fourth = vec3.create([0, 0, this.zs]);
+    var third = vec3.create([this.xs, 0, this.zs]);
+
+    var s = vec3.add(sec, pos);
+    var t = vec3.add(third, pos);
+    var f = vec3.add(fourth, pos);
+
+    return [doChunk(pos), doChunk(s), doChunk(t), doChunk(f)];
   }
 
   return [];
@@ -102,7 +119,7 @@ BlockTerrain.prototype.getChunksToLoad = function(pos) {
 //===----------------------------------------------------------------------===//
 BlockTerrain.worldGenFn = function(noiseFn) {
   return function(x, y, z) {
-    var scale = 0.15;
+    var scale = 0.1;
     var val = noiseFn(x * scale, y * scale, z * scale);
 
     if (val > 0) {
@@ -275,7 +292,7 @@ BlockTerrain.prototype.outOfBounds = function(vec) {
 // buildGrid
 //   builds an xs-by-ys-by-zs grid of vertices
 //===----------------------------------------------------------------------===//
-function buildGrid(gl, xs, ys, zs, verts, texCoords, indices, normals, get) {
+function buildGrid(gl, xs, ys, zs, xoff, yoff, zoff, verts, texCoords, indices, normals, get) {
   var vertInd = 0;
   var indexInd = 0;
   var normalsInd = 0;
@@ -339,7 +356,7 @@ function buildGrid(gl, xs, ys, zs, verts, texCoords, indices, normals, get) {
     for (var x = 0; x < xs; x++) {
       for (var z = 0; z < zs; z++) {
 
-        id = get(x, y, z);
+        id = get(xoff + x, yoff + y, zoff + z);
         tid = BLOCKS[id].texid;
         sideId = BLOCKS[id].sideTex;
 
