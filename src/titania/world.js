@@ -23,7 +23,7 @@ function World(elem, vshader, fshader, fps) {
   canvas.height = this.height;
 
   var gl = this.gl = initWebGL(canvas,
-    vshader, 
+    vshader,
     fshader,
     [ "vNormal", "vColor", "vPosition"],
     [1, 1, 1, 1], // clear color
@@ -37,7 +37,12 @@ function World(elem, vshader, fshader, fps) {
   }
 
   var terrainTexture = getTexture(gl, 'terrain');
-  this.terrain = new BlockTerrain(terrainTexture, this.events);
+
+  this.terrain = new BlockTerrain(
+      terrainTexture
+    , this.events
+    , this.scene.getRootNode()
+  );
 
   gl.debugTexture = loadImageTexture(gl, "img/debug.png");
 
@@ -46,8 +51,6 @@ function World(elem, vshader, fshader, fps) {
   initTestWorld(this);
 
   this.box = makeBox(gl);
-
-  this.terrain.geometry.bind(gl);
 
   var self = this;
   var framerate = new Framerate(fps);
@@ -70,52 +73,59 @@ function World(elem, vshader, fshader, fps) {
 function initTestWorld(world) {
   var gl = world.gl;
   world.map = test_map;
-  world.terrain.loadMap(gl, world.map);
-  
-  var cubeGeometry = Ti.Geometry.copy(gl, world.terrain.geometry);
-  cubeGeometry.numElements = 36;
 
-  // our root scene node
-  var rootNode = world.scene.getRootNode();
+  world.terrain.events.on('first_chunk', function(chunk) {
+    var cubeGeometry = Ti.Geometry.copy(gl, chunk.getGeometry());
+    cubeGeometry.numElements = 36;
 
-  // attach terrain to root scene node
-  var terrainNode = new Ti.SceneNode();
-  terrainNode.attachObject(world.terrain);
-  rootNode.attachObject(terrainNode);
-  world.terrain.attachChunks(terrainNode);
+    // our root scene node
+    var rootNode = world.scene.getRootNode();
 
-  // attach the player to the root scene node
-  var playerNode = new Ti.SceneNode();
-  terrainNode.attachObject(playerNode);
+    // attach terrain to root scene node
+    var terrainNode = new Ti.SceneNode();
+    terrainNode.attachObject(world.terrain);
+    rootNode.attachObject(terrainNode);
+    world.terrain.attachChunks(terrainNode);
 
-  var player = world.player = createPlayer(gl, playerNode, cubeGeometry);
-  world.entities.push(player);
+    // attach the player to the root scene node
+    var playerNode = new Ti.SceneNode();
+    terrainNode.attachObject(playerNode);
 
-  //playerNode.translate([10, 10, 1]);
+    var player = world.player = createPlayer(gl, playerNode, cubeGeometry);
+    world.entities.push(player);
 
-  player.orientation_controller = 
-    new FacingController(playerNode);
+    //playerNode.translate([10, 10, 1]);
 
-  var terrainBobbingController =
-    new BobbingController(terrainNode, 0.2, 0.01, 2);
+    player.orientation_controller =
+      new FacingController(playerNode);
 
-  //world.scene.attachController(terrainBobbingController);
-  world.scene.attachController(
-    new InputController(world.camera, 0.12, world.input, InputController.REV));
+    var terrainBobbingController =
+      new BobbingController(terrainNode, 0.2, 0.01, 2);
 
-  player.movement_controller = 
-    new InputController(playerNode, 0.12, world.input);
+    //world.scene.attachController(terrainBobbingController);
+    world.scene.attachController(
+      new InputController(world.camera, 0.12, world.input, InputController.REV));
 
-  world.scene.attachController(
-    new CollisionController(world.terrain, player));
+    player.movement_controller =
+      new InputController(playerNode, 0.12, world.input);
 
-  var bobbingController = 
-    new BobbingController(playerNode, 0.1, 0.01, 2);
+    world.scene.attachController(
+      new CollisionController(world.terrain, player));
 
-  //test click move
-  world.events.on("clickWorld", function(v, x, y){
+    var bobbingController =
+      new BobbingController(playerNode, 0.1, 0.01, 2);
+
+    //test click move
+    world.events.on("clickWorld", function(v, x, y){
+    });
+
   });
+
+  world.terrain.loadMap(gl, world.map);
+
+  world.terrain.buildChunks(vec3.create([0,0,0]));
 }
+
 
 //===----------------------------------------------------------------------===//
 // World.getBlock
@@ -134,6 +144,7 @@ World.prototype.getBlock = function(x, y, z) {
 
   return BLOCKS[row[x]] || def;
 };
+
 
 //===----------------------------------------------------------------------===//
 // World.clear

@@ -215,7 +215,7 @@ Ti.Scene.prototype.render = function(gl, camera) {
 // Scene.renderNode
 //===----------------------------------------------------------------------===//
 Ti.Scene.prototype.renderNode = function(gl, node, camera, m) {
-  if (node.object && node.object.render) {
+  if (node.object && node.object.renderable) {
     mat4.multiply(camera, node.absoluteTransform, m);
     setProjectionUniform(gl, m);
     calculateNormals(gl, m);

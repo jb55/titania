@@ -1,12 +1,12 @@
 
-function EventEmitter() {
+Ti.EventEmitter = function() {
   this.handlers = {};
 }
 
 //===----------------------------------------------------------------------===//
 // EventEmitter.on
 //===----------------------------------------------------------------------===//
-EventEmitter.prototype.on = function(event, fn) {
+Ti.EventEmitter.prototype.on = function(event, fn) {
   var handlers = this.handlers[event];
   handlers = this.handlers[event] = handlers || [];
   handlers.push(fn);
@@ -16,7 +16,7 @@ EventEmitter.prototype.on = function(event, fn) {
 //===----------------------------------------------------------------------===//
 // EventEmitter.emit
 //===----------------------------------------------------------------------===//
-EventEmitter.prototype.emit = function() {
+Ti.EventEmitter.prototype.emit = function() {
   var args = [].slice.call(arguments);
   var event = _.first(args);
   var rest = _.rest(args);

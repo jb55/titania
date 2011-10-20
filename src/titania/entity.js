@@ -6,6 +6,7 @@
 function Entity(node) {
   this.movement_controller = null;
   this.orientation_controller = null;
+  this.renderable = true;
 }
 
 

@@ -12,6 +12,8 @@ function Chunk(xs, ys, zs, x, y, z, gridSize) {
   this.y = y;
   this.z = z;
 
+  this.renderable = true;
+
   this.built = false;
 
   this.gridSize = gridSize || 1.0;
@@ -35,12 +37,12 @@ Chunk.prototype.build = function(gl, genFn) {
   var indices = new Uint16Array(numVerts);
   var texCoords = new Float32Array(numVerts * 2);
 
-  var xn = this.xs;
-  var yn = this.yn;
-  var zn = this.zn;
+  var xs = this.xs;
+  var ys = this.ys;
+  var zs = this.zs;
 
   var numElements =
-    buildGrid(gl, xn, yn, zn, verts, texCoords, indices, normals, genFn);
+    buildGrid(gl, xs, ys, zs, verts, texCoords, indices, normals, genFn);
 
   indices.options = { usage: gl.DYNAMIC_DRAW };
 
@@ -51,5 +53,13 @@ Chunk.prototype.build = function(gl, genFn) {
   this.built = true;
 
   return this;
+};
+
+
+//===----------------------------------------------------------------------===//
+// Chunk.getGeometry
+//===----------------------------------------------------------------------===//
+Chunk.prototype.getGeometry = function() {
+  return this.geometry;
 };
 
