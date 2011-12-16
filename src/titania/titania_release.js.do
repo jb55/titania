@@ -1,9 +1,4 @@
-DEPS=$(find . -type f -name '*.js' | \
-  sed \
-    -e "/titania.js/d" \
-    -e "/titania_release.js/d" \
-    -e "/titania_debug.js/d" \
-)
+DEPS=$(./js_deps)
 redo-ifchange ../titanium/titanium_release.js $DEPS
 COMPRESSOR="closure"
 cat ../titanium/titanium_release.js $DEPS | $COMPRESSOR > $3

@@ -28,20 +28,20 @@ InputController.prototype.update = function() {
 
   if (keyboard.up)
     v[2] -= val;
-  
-  if (keyboard.down) 
+
+  if (keyboard.down)
     v[2] += val;
 
-  if (keyboard.left) 
+  if (keyboard.left)
     v[0] -= val;
 
-  if (keyboard.right) 
+  if (keyboard.right)
     v[0] += val;
 
-  if (keyboard.z) 
+  if (keyboard.z)
     v[1] -= val;
 
-  if (keyboard.x) 
+  if (keyboard.x)
     v[1] += val;
 
   if (keyboard.q && (this.flags & InputController.ROTATE)) {
@@ -64,10 +64,10 @@ function FacingController(node, step, target, threshold) {
   this.node = node;
   this.threshold = threshold || 0.001;
 
-  this.getStepAmount = !(step instanceof Function) ? 
+  this.getStepAmount = !(step instanceof Function) ?
                        function() { return step; } : step;
 
-  this.getTarget = !(target instanceof Function) ? 
+  this.getTarget = !(target instanceof Function) ?
                    function() { return target; } : target;
 }
 

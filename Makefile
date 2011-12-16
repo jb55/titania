@@ -12,3 +12,5 @@ deploy:
 deploy_release:
 	redo deploy_release
 
+tags:
+	redo tags

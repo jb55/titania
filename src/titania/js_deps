@@ -1,0 +1,10 @@
+#!/bin/sh
+
+DEPS=$(find . -type f -name '*.js' | \
+  sed \
+    -e "/titania_release.js/d" \
+    -e "/titania_debug.js/d" \
+    -e "/titania.js/d"
+)
+
+echo $DEPS

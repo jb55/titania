@@ -51,7 +51,7 @@ function moveAmount(object, direction, world) {
 function pushDirection(world, object, blockCoord) {
   var blockCx = (blockCoord.x * world.block_size) + (world.block_size / 2);
   var blockCy = (blockCoord.y * world.block_size) + (world.block_size / 2);
-  
+
   var dx = blockCx - object.center_x();
   var dy = blockCy - object.center_y();
 

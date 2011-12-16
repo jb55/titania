@@ -11,4 +11,7 @@ SEARCH_DEPS=$(find . -type f -name '*.js' |
 
 DEPS="ti.js util/webgl.js $SEARCH_DEPS"
 
-echo $DEPS
+for i in $DEPS
+do
+  echo $i
+done
