@@ -4,6 +4,7 @@ find . -type f -name '*.js' | \
   sed \
     -e "/titania_release.js/d" \
     -e "/titania_debug.js/d" \
+    -e "/underscore.min/d" \
     -e "/titanium_release.js/d" \
     -e "/titanium_debug.js/d" \
     -e "/titania.js/d"
