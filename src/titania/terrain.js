@@ -83,28 +83,32 @@ BlockTerrain.prototype.getChunksToLoad = function(pos) {
     return Math.floor(x) / 2;
   }
 
-  function doChunk(pos) {
+  function doChunk(pos_) {
     return new Chunk(
         self.xs
       , self.ys
       , self.zs
-      , pos[0] - half(self.xs)
-      , pos[1]
-      , pos[2] - half(self.zs)
+      , pos_[0] - half(self.xs)
+      , pos_[1]
+      , pos_[2] - half(self.zs)
       , self.gridSize
     );
   }
 
+  var chunks = [];
+
   if (!this.firstChunkLoaded) {
-    var sec    = Ti.v3(this.xs , 0 , 0);
-    var fourth = Ti.v3(0       , 0 , this.zs);
-    var third  = Ti.v3(this.xs , 0 , this.zs);
+    var iters = 5;
+    for (var x = 0; x < iters; ++x) {
+      for (var y = 0; y < iters; ++y) {
+        for (var z = 0; z < iters; ++z) {
+          var p = Ti.v3(this.xs * x, this.ys * -y, this.zs * z);
+          chunks.push(doChunk(p));
+        }
+      }
+    }
 
-    var s = vec3.add(sec, pos);
-    var t = vec3.add(third, pos);
-    var f = vec3.add(fourth, pos);
-
-    return [doChunk(pos), doChunk(s), doChunk(t), doChunk(f)];
+    return chunks;
   }
 
   return [];
@@ -123,7 +127,7 @@ BlockTerrain.worldGenFn = function(noiseFn) {
       , y = vec[1]
       , z = vec[2];
 
-    var scale = 0.1;
+    var scale = 0.05;
     var val = noiseFn(x * scale, y * scale, z * scale);
 
     if (val > 0) {

@@ -153,9 +153,9 @@ Ti.SceneNode.prototype.attachObject = function(obj) {
 // SceneNode.translate
 //===----------------------------------------------------------------------===//
 Ti.SceneNode.prototype.translate = function(vec, y, z) {
-  if (vec3.equals(vec3.ZERO, vec)) 
+  if (vec3.equals(vec3.ZERO, vec))
     return;
-  vec3.add(this.position, vec);
+  vec3.addM(this.position, vec);
   this.markForUpdate();
 };
 

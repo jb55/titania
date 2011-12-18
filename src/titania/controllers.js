@@ -49,7 +49,7 @@ InputController.prototype.update = function() {
   }
 
   if (!vec3.isZero(v)) {
-    vec3.scale(vec3.normalize(v), moveAmount * (keyboard.shift ? 2 : 1));
+    vec3.scale(vec3.normalize(v), moveAmount * (keyboard.shift ? 2 : 1), v);
     this.node.translate(v);
   }
 
