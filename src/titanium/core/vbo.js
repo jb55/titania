@@ -22,7 +22,7 @@ Ti.VBO = function(gl, elems, options) {
 //===----------------------------------------------------------------------===//
 Ti.VBO.createNormalBuffer = function(gl, elems, options) {
   return new Ti.VBO(gl, elems, Ti.utils.merge({
-    components: 3, 
+    components: 3,
     slot: 0
   }, options));
 }
@@ -33,7 +33,7 @@ Ti.VBO.createNormalBuffer = function(gl, elems, options) {
 //===----------------------------------------------------------------------===//
 Ti.VBO.createTexCoordBuffer = function(gl, elems, options) {
   return new Ti.VBO(gl, elems, Ti.utils.merge({
-    components: 2, 
+    components: 2,
     slot: 1
   }, options));
 }
@@ -44,9 +44,9 @@ Ti.VBO.createTexCoordBuffer = function(gl, elems, options) {
 //===----------------------------------------------------------------------===//
 Ti.VBO.createVertexBuffer = function(gl, elems, options) {
   return new Ti.VBO(gl, elems, Ti.utils.merge({
-    components: 3, 
+    components: 3,
     slot: 2
-  }, options)); 
+  }, options));
 }
 
 
@@ -106,5 +106,5 @@ Ti.VBO.updateBuffer = function(gl, bufferType, buffer, offset, data, usage) {
 
   if (offset > 0) {
   }
-  
+
 }

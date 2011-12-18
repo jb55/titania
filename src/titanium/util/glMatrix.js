@@ -63,6 +63,18 @@ vec3.create = function(vec) {
 	return dest;
 };
 
+vec3.create2 = function(x, y, z) {
+  var dest = new glMatrixArrayType(3);
+
+  dest[0] = x;
+  dest[1] = y;
+  dest[2] = z;
+
+  return dest;
+}
+
+Ti.v3 = vec3.create2;
+
 vec3.ZERO = vec3.create([0, 0, 0]);
 
 vec3.equals = function(v1, v2, tolerance) {

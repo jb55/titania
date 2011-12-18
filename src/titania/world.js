@@ -131,18 +131,7 @@ function initTestWorld(world) {
 // World.getBlock
 //===----------------------------------------------------------------------===//
 World.prototype.getBlock = function(x, y, z) {
-  var def = BLOCKS[0]; // air
-  if (x < 0 || y < 0 || z < 0)
-    return def;
-  var slice = this.map[z];
-  if (!slice)
-    return def;
-  var row = slice[y];
-
-  if (!row)
-    return def;
-
-  return BLOCKS[row[x]] || def;
+  this.terrain.getBlock(Ti.v3(x, y, z));
 };
 
 

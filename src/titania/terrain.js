@@ -96,9 +96,9 @@ BlockTerrain.prototype.getChunksToLoad = function(pos) {
   }
 
   if (!this.firstChunkLoaded) {
-    var sec = vec3.create([this.xs, 0, 0]);
-    var fourth = vec3.create([0, 0, this.zs]);
-    var third = vec3.create([this.xs, 0, this.zs]);
+    var sec    = Ti.v3(this.xs , 0 , 0);
+    var fourth = Ti.v3(0       , 0 , this.zs);
+    var third  = Ti.v3(this.xs , 0 , this.zs);
 
     var s = vec3.add(sec, pos);
     var t = vec3.add(third, pos);
@@ -118,7 +118,11 @@ BlockTerrain.prototype.getChunksToLoad = function(pos) {
 // noiseFn - a 3d noise function
 //===----------------------------------------------------------------------===//
 BlockTerrain.worldGenFn = function(noiseFn) {
-  return function(x, y, z) {
+  return function(vec) {
+    var x = vec[0]
+      , y = vec[1]
+      , z = vec[2];
+
     var scale = 0.1;
     var val = noiseFn(x * scale, y * scale, z * scale);
 
@@ -135,27 +139,37 @@ BlockTerrain.worldGenFn = function(noiseFn) {
 // BlockTerrain.importMap
 //===----------------------------------------------------------------------===//
 BlockTerrain.prototype.loadMap = function(gl, data) {
-  return this.loadNoiseMap(gl, 'test-seed');
+  var blockFn = BlockTerrain.noiseMapLoader(gl, 'test-seed');
+  //var blockFn = BlockTerrain.mapLoader(gl, data);
+  this.blockFn = blockFn;
+
+  this.chunkBuilder = function(chunk){
+    return chunk.build(gl, blockFn);
+  };
 }
 
 
+//===----------------------------------------------------------------------===//
+// BlockTerrain.mapLoader
+//
+// Returns a chunk loader given some data
+//===----------------------------------------------------------------------===//
+BlockTerrain.mapLoader = function(gl, data) {
+  return function(vec){
+    return BlockTerrain.getBlockData(data, vec);
+  }
+}
+
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.loadNoiseMap
+// BlockTerrain.noiseMapLoader
 //   load a 3d-noise-based map
 //===----------------------------------------------------------------------===//
-BlockTerrain.prototype.loadNoiseMap = function(gl, seed) {
+BlockTerrain.noiseMapLoader = function(gl, seed) {
   var seedFn = Ti.Math.seedRandom(seed);
   var noise = Ti.getNoiseFunctions('simplex', seedFn);
   var blockFn = BlockTerrain.worldGenFn(noise.noise3d.bind(noise));
-  this.blockFn = blockFn;
-  var self = this;
-
-  // tell the chunk builder to build chunks using our noise function
-  this.chunkBuilder = function(chunk){
-    return chunk.build(gl, blockFn);
-  }
-
+  return blockFn;
 }
 
 
@@ -226,18 +240,31 @@ BlockTerrain.prototype.render = function(gl) {
 // BlockTerrain.getBlock
 //===----------------------------------------------------------------------===//
 BlockTerrain.prototype.getBlock = function(vec) {
-
-  if (this.blockFn)
-    return this.blockFn(vec[0], vec[1], vec[2]);
-
-  if (this.outOfBounds(vec)) return 0;
-
-  var x = vec[0]
-    , y = vec[1]
-    , z = vec[2];
-
-  return this.blocks[y][x][z];
+  return this.blockFn(vec);
 }
+
+
+//===----------------------------------------------------------------------===//
+// BlockTerrain.getBlockData
+//
+// Gets a block from a 3d array of block data
+//===----------------------------------------------------------------------===//
+BlockTerrain.getBlockData = function(data, vec) {
+  var ys = data.length;
+  var xs = data[0].length;
+  var zs = data[0][0].length;
+
+  if (vec[1] >= ys)
+    return BLOCK_AIR;
+
+  var x = Math.abs(vec[0]) % xs
+    , y = Math.abs(vec[1]) % ys
+    , z = Math.abs(vec[2]) % zs
+    ;
+
+  return data[y][x][z];
+}
+
 
 
 //===----------------------------------------------------------------------===//
@@ -256,7 +283,7 @@ BlockTerrain.prototype.surface = function(vec) {
   // if in passible, look down. If in impassible, look up.
   while (cnd(block)) {
     v[1] += dir;
-    if (this.outOfBounds(v)) {
+    if (BlockTerrain.outOfBounds(v, this.xs, this.ys, this.zs)) {
       return vec[1];
     }
     block = this.getBlock(v);
@@ -274,7 +301,7 @@ BlockTerrain.prototype.surface = function(vec) {
 // BlockTerrain.outOfBounds
 //   checks to see if a point is out of bounds
 //===----------------------------------------------------------------------===//
-BlockTerrain.prototype.outOfBounds = function(vec) {
+BlockTerrain.outOfBounds = function(vec, xs, ys, zs) {
   var x = vec[0]
     , y = vec[1]
     , z = vec[2];
@@ -282,9 +309,9 @@ BlockTerrain.prototype.outOfBounds = function(vec) {
   return y < 0 ||
          x < 0 ||
          z < 0 ||
-         y >= this.ys ||
-         x >= this.xs ||
-         z >= this.zs;
+         y >= ys ||
+         x >= xs ||
+         z >= zs;
 };
 
 
@@ -351,12 +378,18 @@ function buildGrid(gl, xs, ys, zs, xoff, yoff, zoff, verts, texCoords, indices, 
     , tid
     ;
 
+  var v3 = Ti.v3(0, 0, 0);
+
   // foreach block
   for (var y = 0; y < ys; y++) {
     for (var x = 0; x < xs; x++) {
       for (var z = 0; z < zs; z++) {
 
-        id = get(xoff + x, yoff + y, zoff + z);
+        v3[0] = xoff + x;
+        v3[1] = yoff + y;
+        v3[2] = zoff + z;
+
+        id = get(v3);
         tid = BLOCKS[id].texid;
         sideId = BLOCKS[id].sideTex;
 

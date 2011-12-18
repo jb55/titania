@@ -4,17 +4,17 @@
 //===----------------------------------------------------------------------===//
 Ti.Geometry = function(gl, vertices, texCoords, normals, indices, numElements) {
   if (normals) {
-    this.normalBuffer = 
+    this.normalBuffer =
       Ti.VBO.createNormalBuffer(gl, normals, normals.options);
   }
 
   if (texCoords) {
-    this.texCoordBuffer = 
+    this.texCoordBuffer =
       Ti.VBO.createTexCoordBuffer(gl, texCoords, texCoords.options);
   }
 
   if (vertices) {
-    this.vertexBuffer = 
+    this.vertexBuffer =
       Ti.VBO.createVertexBuffer(gl, vertices, vertices.options);
   }
 
@@ -25,6 +25,7 @@ Ti.Geometry = function(gl, vertices, texCoords, normals, indices, numElements) {
     this.numElements = numElements || vertices.length;
   }
 }
+
 
 //===----------------------------------------------------------------------===//
 // Geometry.copy
@@ -39,6 +40,7 @@ Ti.Geometry.copy = function(gl, geo) {
   newGeo.numElements = geo.numElements;
   return newGeo;
 }
+
 
 //===----------------------------------------------------------------------===//
 // Geometry.bind
@@ -62,7 +64,7 @@ Ti.Geometry.prototype.bind = function(gl) {
 //===----------------------------------------------------------------------===//
 Ti.Geometry.prototype.render = function(gl, kind, indexBufferType) {
   if (this.indexBuffer) {
-    gl.drawElements(kind, this.numElements, 
+    gl.drawElements(kind, this.numElements,
                     indexBufferType || gl.UNSIGNED_SHORT, 0);
   } else {
     gl.drawArrays(kind, 0, this.numElements / 3);
@@ -84,7 +86,7 @@ Ti.Geometry.updateBuffer= function(gl, bufferType, buffer, offset, data, usage){
 
   if (offset > 0) {
   }
-  
+
 }
 
 

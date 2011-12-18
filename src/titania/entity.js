@@ -128,8 +128,7 @@ function createPlayer(gl, playerNode, geometry) {
   player.body = attachLimb(
     [bodyThickness, bodyScale, bodyThickness/2], [0, 0, 0]); // body
 
-  player.leftArm = attachLimb(
-    [armThickness, 1, armThickness], [-armPos, -armPos, 0]); // left arm
+  player.leftArm = attachLimb([1, 1, 1], [-armPos, -armPos, 0]); // left arm
 
   player.rightArm = attachLimb(
     [armThickness, 1, armThickness], [armPos, -armPos, 0]); // right arm
