@@ -7,9 +7,11 @@ function WorldEvents(input, world) {
   this.world = world;
   this.handlers = {};
   var self = this;
+
   this.input.addHandler("click", function(x, y){
     self.clickWorld(x, y);
   });
+
 }
 
 
@@ -17,7 +19,7 @@ function WorldEvents(input, world) {
 // WorldEvents.addHandler
 //===----------------------------------------------------------------------===//
 WorldEvents.prototype.on = function(event, fn) {
-  handlers = this.handlers[event];
+  var handlers = this.handlers[event];
   handlers = this.handlers[event] = handlers || [];
   handlers.push(fn);
 };

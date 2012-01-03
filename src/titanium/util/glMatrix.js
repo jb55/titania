@@ -151,7 +151,7 @@ vec3.add = function(vec, vec2) {
  * Returns:
  * dest if specified, vec otherwise
  */
-vec3.subtract = function(vec, vec2, dest) {
+vec3.subtractM = function(vec, vec2, dest) {
 	if(!dest || vec == dest) {
 		vec[0] -= vec2[0];
 		vec[1] -= vec2[1];
@@ -164,6 +164,12 @@ vec3.subtract = function(vec, vec2, dest) {
 	dest[2] = vec[2] - vec2[2];
 	return dest;
 };
+
+vec3.subtract = function(v1, v2) {
+  var newV = vec3.create2(0, 0, 0);
+  vec3.subtractM(v1, v2, newV);
+  return newV;
+}
 
 /*
  * vec3.negate
@@ -294,9 +300,13 @@ vec3.cross = function(vec, vec2, dest){
  * Length of vec
  */
 vec3.length = function(vec){
-	var x = vec[0], y = vec[1], z = vec[2];
-	return Math.sqrt(x*x + y*y + z*z);
+	return Math.sqrt(vec3.squaredLength(vec));
 };
+
+vec3.squaredLength = function(vec){
+	var x = vec[0], y = vec[1], z = vec[2];
+	return x*x + y*y + z*z;
+}
 
 /*
  * vec3.dot

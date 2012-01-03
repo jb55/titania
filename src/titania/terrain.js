@@ -1,30 +1,37 @@
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain
+// Terrain
 //===----------------------------------------------------------------------===//
-function BlockTerrain(texture, worldEvents) {
+function Terrain(texture, world) {
   this.texture = texture;
   this.chunkBuilder = function() {}
   this.events = new Ti.EventEmitter();
   this.firstChunkLoaded = false;
+  this.chunks = Ti.a3d();
   this.gridSize = 1.0;
   var self = this;
+
+  this.boundary = [
+      Ti.v3(0, 0, 0) // bottom left
+    , Ti.v3(0, 0, 0) // top right
+  ];
 
   this.ys = 6;
   this.xs = 20;
   this.zs = 20;
 
-  worldEvents.on('movement', function(moveEvent){
-    var pos = moveEvent.pos;
-    self.buildChunks(pos);
+  this.events.on('load_chunks', function(pos){
+    var player = world.getPlayer();
+    self.buildChunks(player.getPosition());
   });
+
 }
 
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.buildChunks
+// Terrain.buildChunks
 //===----------------------------------------------------------------------===//
-BlockTerrain.prototype.buildChunks = function(pos) {
+Terrain.prototype.buildChunks = function(pos) {
   var chunks = this.getChunksToLoad(pos);
   var self = this;
 
@@ -32,16 +39,16 @@ BlockTerrain.prototype.buildChunks = function(pos) {
   _.each(chunks, function(c) {
     var built = self.buildChunk(c);
     built.texture = self.texture;
-    BlockTerrain.attachChunk(built, self.sceneNode);
+    Terrain.attachChunk(built, self.sceneNode);
   });
 };
 
 
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.buildChunk
+// Terrain.buildChunk
 //===----------------------------------------------------------------------===//
-BlockTerrain.prototype.buildChunk = function(chunk) {
+Terrain.prototype.buildChunk = function(chunk) {
   var builtChunk = this.chunkBuilder(chunk);
 
   if (!this.firstChunkLoaded) {
@@ -53,21 +60,44 @@ BlockTerrain.prototype.buildChunk = function(chunk) {
 };
 
 
+//===----------------------------------------------------------------------===//
+// Terrain.pushChunkBoundary
+//===----------------------------------------------------------------------===//
+Terrain.prototype.pushChunkBoundary = function(p) {
+    var lower = this.boundary[0];
+    var higher = this.boundary[1];
+
+    var len = vec3.squaredLength(p);
+
+    if (len < 0) {
+      lower[0] = Math.min(lower[0], p[0]);
+      lower[1] = Math.min(lower[1], p[1]);
+      lower[2] = Math.min(lower[2], p[2]);
+    } else {
+      higher[0] = Math.max(higher[0], p[0]);
+      higher[1] = Math.max(higher[1], p[1]);
+      higher[2] = Math.max(higher[2], p[2]);
+    }
+
+    return len;
+}
+
+
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.attachChunk
+// Terrain.attachChunk
 //===----------------------------------------------------------------------===//
-BlockTerrain.attachChunk = function(chunk, root) {
+Terrain.attachChunk = function(chunk, root) {
   var node = new Ti.SceneNode();
-  node.translate(vec3.create([chunk.x, chunk.y, chunk.z]));
+  var pos = chunk.getPosition();
+  node.translate(pos);
   node.attachObject(chunk);
   root.attachObject(node);
 };
 
 
-
 //===----------------------------------------------------------------------===//
-// BlockTerrain.getChunksToLoad
+// Terrain.getChunksToLoad
 //
 // Given the the players position and state of the currently loaded chunks,
 // determine which chunks need to be loaded.
@@ -75,7 +105,7 @@ BlockTerrain.attachChunk = function(chunk, root) {
 // @return
 //   A list of chunk objects to load
 //===----------------------------------------------------------------------===//
-BlockTerrain.prototype.getChunksToLoad = function(pos) {
+Terrain.prototype.getChunksToLoad = function(pos) {
 
   var self = this;
 
@@ -84,44 +114,105 @@ BlockTerrain.prototype.getChunksToLoad = function(pos) {
   }
 
   function doChunk(pos_) {
-    return new Chunk(
+    var chunk = new Chunk(
         self.xs
       , self.ys
       , self.zs
-      , pos_[0] - half(self.xs)
-      , pos_[1]
-      , pos_[2] - half(self.zs)
+      , pos
       , self.gridSize
     );
+
+    self.chunks.set(chunk, chunk.getCoord());
+    return chunk;
   }
 
-  var chunks = [];
+  var triggerDist = 2;
 
-  if (!this.firstChunkLoaded) {
-    var iters = 5;
-    for (var x = 0; x < iters; ++x) {
-      for (var y = 0; y < iters; ++y) {
-        for (var z = 0; z < iters; ++z) {
-          var p = Ti.v3(this.xs * x, this.ys * -y, this.zs * z);
-          chunks.push(doChunk(p));
-        }
-      }
+  var isUpper  = vec3.squaredLength(pos) > 0;
+  var boundary = isUpper? this.boundary[1] : this.boundary[0];
+
+  // determine if we are coming near a chunk boundary
+  var diff           = vec3.subtract(boundary, pos);
+  var delta          = vec3.squaredLength(diff);
+  var isNearBoundary = delta <= triggerDist;
+
+  if (true || isNearBoundary) {
+    var onChunk = this.getChunkFromPos(pos);
+
+    if (!onChunk) {
+      // the chunk that the player is on is not loaded, might as well load it!
+      var p = this.getChunkPos(pos);
+      return [doChunk(p)];
     }
 
-    return chunks;
+    var chunkPositions = onChunk.getUnloadedAdjacent(this.chunks);
+    return _.map(chunkPositions, doChunk);
   }
 
   return [];
 }
 
+//===----------------------------------------------------------------------===//
+// Terrain.prototype.getChunkCoord
+//   returns a chunk coordinate given an arbitrary position
+//===----------------------------------------------------------------------===//
+Terrain.prototype.getChunkCoord = function(pos) {
+  return Terrain.chunkCoord(pos, this.xs, this.ys, this.zs);
+}
+
+
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.worldGenFunction
+// Terrain.prototype.getChunkCoord
+//   returns a chunk coordinate given an arbitrary position
+//===----------------------------------------------------------------------===//
+Terrain.chunkCoord = function(pos, xs, ys, zs) {
+  var xp = Math.floor(pos[0] / xs)
+    , yp = Math.floor(pos[1] / ys)
+    , zp = Math.floor(pos[2] / zs);
+  return Ti.v3(xp, yp, zp);
+}
+
+
+
+//===----------------------------------------------------------------------===//
+// Terrain.prototype.getChunkPos
+//   returns a chunk position given an arbitrary position
+//===----------------------------------------------------------------------===//
+Terrain.prototype.getChunkPos = function(pos) {
+  var coord = this.getChunkCoord(pos);
+
+  coord[0] *= this.xs;
+  coord[1] *= this.ys;
+  coord[2] *= this.zs;
+
+  return coord;
+}
+
+
+
+//===----------------------------------------------------------------------===//
+// Terrain.getChunkFromPos
+//   returns a chunk from a location
+//
+//===----------------------------------------------------------------------===//
+Terrain.prototype.getChunkFromPos = function(pos) {
+  var x = pos[0]
+    , y = pos[1]
+    , z = pos[2];
+
+  var coord = this.getChunkCoord(pos);
+  return this.chunks.lookup(coord);
+}
+
+
+//===----------------------------------------------------------------------===//
+// Terrain.worldGenFunction
 //   returns a block function(x, y, z) that generates a world
 //
 // noiseFn - a 3d noise function
 //===----------------------------------------------------------------------===//
-BlockTerrain.worldGenFn = function(noiseFn) {
+Terrain.worldGenFn = function(noiseFn) {
   return function(vec) {
     var x = vec[0]
       , y = vec[1]
@@ -140,11 +231,11 @@ BlockTerrain.worldGenFn = function(noiseFn) {
 
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.importMap
+// Terrain.importMap
 //===----------------------------------------------------------------------===//
-BlockTerrain.prototype.loadMap = function(gl, data) {
-  var blockFn = BlockTerrain.noiseMapLoader(gl, 'test-seed');
-  //var blockFn = BlockTerrain.mapLoader(gl, data);
+Terrain.prototype.loadMap = function(gl, data) {
+  var blockFn = Terrain.noiseMapLoader(gl, 'test-seed');
+  //var blockFn = Terrain.mapLoader(gl, data);
   this.blockFn = blockFn;
 
   this.chunkBuilder = function(chunk){
@@ -154,35 +245,35 @@ BlockTerrain.prototype.loadMap = function(gl, data) {
 
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.mapLoader
+// Terrain.mapLoader
 //
 // Returns a chunk loader given some data
 //===----------------------------------------------------------------------===//
-BlockTerrain.mapLoader = function(gl, data) {
+Terrain.mapLoader = function(gl, data) {
   return function(vec){
-    return BlockTerrain.getBlockData(data, vec);
+    return Terrain.getBlockData(data, vec);
   }
 }
 
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.noiseMapLoader
+// Terrain.noiseMapLoader
 //   load a 3d-noise-based map
 //===----------------------------------------------------------------------===//
-BlockTerrain.noiseMapLoader = function(gl, seed) {
+Terrain.noiseMapLoader = function(gl, seed) {
   var seedFn = Ti.Math.seedRandom(seed);
   var noise = Ti.getNoiseFunctions('simplex', seedFn);
-  var blockFn = BlockTerrain.worldGenFn(noise.noise3d.bind(noise));
+  var blockFn = Terrain.worldGenFn(noise.noise3d.bind(noise));
   return blockFn;
 }
 
 
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.attachChunks
+// Terrain.attachChunks
 //   attach terrain chunks to a scene node
 //===----------------------------------------------------------------------===//
-BlockTerrain.prototype.attachChunks = function(root) {
+Terrain.prototype.attachChunks = function(root) {
 };
 
 
@@ -225,35 +316,35 @@ function texCoordFromId(id, xs, u, v, dest, ind) {
 }
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.renderGeo
+// Terrain.renderGeo
 //   Bind and render the terrain
 //===----------------------------------------------------------------------===//
-BlockTerrain.renderGeo = function(gl, geo) {
+Terrain.renderGeo = function(gl, geo) {
 }
 
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.render
+// Terrain.render
 //   Bind and render the terrain
 //===----------------------------------------------------------------------===//
-BlockTerrain.prototype.render = function(gl) {
+Terrain.prototype.render = function(gl) {
 }
 
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.getBlock
+// Terrain.getBlock
 //===----------------------------------------------------------------------===//
-BlockTerrain.prototype.getBlock = function(vec) {
+Terrain.prototype.getBlock = function(vec) {
   return this.blockFn(vec);
 }
 
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.getBlockData
+// Terrain.getBlockData
 //
 // Gets a block from a 3d array of block data
 //===----------------------------------------------------------------------===//
-BlockTerrain.getBlockData = function(data, vec) {
+Terrain.getBlockData = function(data, vec) {
   var ys = data.length;
   var xs = data[0].length;
   var zs = data[0][0].length;
@@ -272,10 +363,10 @@ BlockTerrain.getBlockData = function(data, vec) {
 
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.surface
+// Terrain.surface
 //   finds a surface
 //===----------------------------------------------------------------------===//
-BlockTerrain.prototype.surface = function(vec) {
+Terrain.prototype.surface = function(vec) {
   var block = this.getBlock(vec)
     , v = vec3.create(vec)
     , isDown = Block.isPassible(block)
@@ -287,7 +378,7 @@ BlockTerrain.prototype.surface = function(vec) {
   // if in passible, look down. If in impassible, look up.
   while (cnd(block)) {
     v[1] += dir;
-    if (BlockTerrain.outOfBounds(v, this.xs, this.ys, this.zs)) {
+    if (Terrain.outOfBounds(v, this.xs, this.ys, this.zs)) {
       return vec[1];
     }
     block = this.getBlock(v);
@@ -302,10 +393,10 @@ BlockTerrain.prototype.surface = function(vec) {
 
 
 //===----------------------------------------------------------------------===//
-// BlockTerrain.outOfBounds
+// Terrain.outOfBounds
 //   checks to see if a point is out of bounds
 //===----------------------------------------------------------------------===//
-BlockTerrain.outOfBounds = function(vec, xs, ys, zs) {
+Terrain.outOfBounds = function(vec, xs, ys, zs) {
   var x = vec[0]
     , y = vec[1]
     , z = vec[2];

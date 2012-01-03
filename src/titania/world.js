@@ -38,9 +38,9 @@ function World(elem, vshader, fshader, fps) {
 
   var terrainTexture = getTexture(gl, 'terrain');
 
-  this.terrain = new BlockTerrain(
+  this.terrain = new Terrain(
       terrainTexture
-    , this.events
+    , this
     , this.scene.getRootNode()
   );
 
@@ -109,6 +109,10 @@ function initTestWorld(world) {
     player.movement_controller =
       new InputController(playerNode, 0.12, world.input);
 
+    player.movement_controller.events.on('move', function(p){
+      world.terrain.events.emit('load_chunks');
+    });
+
     world.scene.attachController(
       new CollisionController(world.terrain, player));
 
@@ -125,6 +129,14 @@ function initTestWorld(world) {
 
   world.terrain.buildChunks(vec3.create([0,0,0]));
 }
+
+//===----------------------------------------------------------------------===//
+// World.getPlayer
+//===----------------------------------------------------------------------===//
+World.prototype.getPlayer = function() {
+  return this.player;
+}
+
 
 
 //===----------------------------------------------------------------------===//

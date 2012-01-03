@@ -3,17 +3,15 @@
 //===----------------------------------------------------------------------===//
 // Chunk
 //===----------------------------------------------------------------------===//
-function Chunk(xs, ys, zs, x, y, z, gridSize) {
+function Chunk(xs, ys, zs, pos, gridSize) {
   this.xs = xs;
   this.ys = ys;
   this.zs = zs;
 
-  this.x = x;
-  this.y = y;
-  this.z = z;
+  this.pos = pos;
+  this.coord = Terrain.chunkCoord(pos, xs, ys, zs);
 
   this.renderable = true;
-
   this.built = false;
 
   this.gridSize = gridSize || 1.0;
@@ -47,9 +45,9 @@ Chunk.prototype.build = function(gl, genFn) {
       , xs
       , ys
       , zs
-      , this.x
-      , this.y
-      , this.z
+      , this.pos[0]
+      , this.pos[1]
+      , this.pos[2]
       , verts
       , texCoords
       , indices
@@ -75,4 +73,53 @@ Chunk.prototype.build = function(gl, genFn) {
 Chunk.prototype.getGeometry = function() {
   return this.geometry;
 };
+
+
+//===----------------------------------------------------------------------===//
+// Chunk.getUnloadedAdjacent
+//   returns a list of vectors describing the positions of unloaded chunks
+//   adjacent to this one
+//===----------------------------------------------------------------------===//
+Chunk.prototype.getUnloadedAdjacent = function(chunks) {
+  var vectors = [];
+
+  for (var x = -1; x <= 1; ++x) {
+    for (var y = -1; y <= 1; ++y) {
+      for (var z = -1; z <= 1; ++z) {
+
+        // ignore self
+        if (x === 0 && y === 0 && z === 0)
+          continue;
+
+        var xp = this.pos[0] + x
+          , yp = this.pos[1] + y
+          , zp = this.pos[2] + z;
+
+        var chunk = chunks.lookup(xp, yp, zp);
+
+        if (chunk === null)
+          vectors.push(Ti.v3(xp, yp, zp));
+      }
+    }
+  }
+
+  return chunks;
+}
+
+
+//===----------------------------------------------------------------------===//
+// Chunk.getCoord
+//   gets the chunks coordinate
+//===----------------------------------------------------------------------===//
+Chunk.prototype.getCoord = function() {
+  return this.coord;
+}
+
+//===----------------------------------------------------------------------===//
+// Chunk.getPosition
+//   gets the chunks position in the world
+//===----------------------------------------------------------------------===//
+Chunk.prototype.getPosition = function() {
+  return this.pos;
+}
 

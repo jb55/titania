@@ -38,7 +38,7 @@ Ti.SceneNode.prototype.update = function() {
   }
 
   var relative = this.relativeTransform;
-  mat4.createTransform(this.position, this.scale, this.orientation, relative)
+  mat4.createTransform(this.getPosition(), this.scale, this.orientation, relative)
 
   if (this.customUpdate) {
     this.customUpdate(relative);
@@ -93,6 +93,14 @@ Ti.SceneNode.prototype.markForUpdate = function(scene) {
       continue;
     child.markForUpdate();
   };
+};
+
+
+//===----------------------------------------------------------------------===//
+// SceneNode.getPosition
+//===----------------------------------------------------------------------===//
+Ti.SceneNode.prototype.getPosition = function(vec) {
+  return this.position;
 };
 
 
@@ -155,7 +163,7 @@ Ti.SceneNode.prototype.attachObject = function(obj) {
 Ti.SceneNode.prototype.translate = function(vec, y, z) {
   if (vec3.equals(vec3.ZERO, vec))
     return;
-  vec3.addM(this.position, vec);
+  vec3.addM(this.getPosition(), vec);
   this.markForUpdate();
 };
 

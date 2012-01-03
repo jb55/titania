@@ -34,7 +34,7 @@ Entity.prototype.update = function() {
 // Entity.right
 //===----------------------------------------------------------------------===//
 Entity.prototype.right = function() {
-  return this.sceneNode.position[0] + this.width();
+  return this.getSceneNode().position[0] + this.width();
 };
 
 
@@ -42,7 +42,7 @@ Entity.prototype.right = function() {
 // Entity.left
 //===----------------------------------------------------------------------===//
 Entity.prototype.left = function() {
-  return this.sceneNode.position[0];
+  return this.getSceneNode().position[0];
 };
 
 
@@ -58,7 +58,7 @@ Entity.prototype.hw = function() {
 // Entity.bottom
 //===----------------------------------------------------------------------===//
 Entity.prototype.bottom = function() {
-  return this.sceneNode.position[1];
+  return this.getSceneNode().position[1];
 };
 
 
@@ -71,12 +71,29 @@ Entity.prototype.width = function() {
 
 
 //===----------------------------------------------------------------------===//
+// Entity.getSceneNode
+//===----------------------------------------------------------------------===//
+Entity.prototype.getSceneNode = function() {
+  return this.sceneNode;
+}
+
+
+//===----------------------------------------------------------------------===//
+// Entity.getPosition
+//===----------------------------------------------------------------------===//
+Entity.prototype.getPosition = function() {
+  return this.getSceneNode().getPosition();
+}
+
+
+
+//===----------------------------------------------------------------------===//
 // Entity.getGridPosition
 //   @static
 //===----------------------------------------------------------------------===//
 Entity.getGridPosition = function(terrain, ent) {
   var gs = terrain.gridSize;
-  node = ent.sceneNode;
+  node = ent.getSceneNode();
   assert(node, "Entity has no sceneNode");
   var p = node.position;
   var hw = ent.width() / 2;

@@ -38,6 +38,7 @@
         vec4 transNormal = u_normalMatrix * vec4(vNormal, 1);
         v_Dot = max(dot(transNormal.xyz, lightDir), 0.4);
       }
+
   </script>
 
   <script id="fshader" type="x-shader/x-fragment">
@@ -50,16 +51,16 @@
 
       varying float v_Dot;
       varying vec2 v_texCoord;
-      varying float fog; 
+      varying float fog;
 
       void main()
       {
           vec2 texCoord = vec2(v_texCoord.s, 1.0 - v_texCoord.t);
           vec4 color = texture2D(sampler2d, texCoord);
-          color += vec4(0.1, 0.1, 0.1, 1);
           color *= vec4(fog, fog, fog, 1);
           gl_FragColor = vec4(color.xyz * v_Dot, color.a);
       }
+
   </script>
 </head>
 <body>
