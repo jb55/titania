@@ -1,25 +1,28 @@
 
-Ti.EventEmitter = function() {
-  this.handlers = {};
-}
+Ti.EventEmitter = {
+
+  _callbacks: function() {
+    return this.__callbacks || (this.__callbacks = {});
+  },
 
 //===----------------------------------------------------------------------===//
 // EventEmitter.on
 //===----------------------------------------------------------------------===//
-Ti.EventEmitter.prototype.on = function(event, fn) {
-  var handlers = this.handlers[event];
-  handlers = this.handlers[event] = handlers || [];
-  handlers.push(fn);
-}
-
+  on: function(event, fn) {
+    var callbacks = this._callbacks()[event];
+    callbacks = this._callbacks()[event] = callbacks || [];
+    callbacks.push(fn);
+  },
 
 //===----------------------------------------------------------------------===//
 // EventEmitter.emit
 //===----------------------------------------------------------------------===//
-Ti.EventEmitter.prototype.emit = function() {
-  var args = [].slice.call(arguments);
-  var event = _.first(args);
-  var rest = _.rest(args);
-  this.handlers[event].forEach(function(fn) { fn.apply(this, rest); });
+  emit: function() {
+    var args = [].slice.call(arguments);
+    var event = _.first(args);
+    var rest = _.rest(args);
+    _(this._callbacks()[event]).each(function(fn) { fn.apply(this, rest); });
+  }
+
 }
 

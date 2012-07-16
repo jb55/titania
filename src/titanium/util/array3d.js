@@ -41,7 +41,7 @@ Array3d.prototype.set = function(elem, x, y, z) {
 //===----------------------------------------------------------------------===//
 // Ti.Array3d
 //===----------------------------------------------------------------------===//
-Array3d.prototype.lookup = function(x, y, z) {
+Array3d.prototype.get = function(x, y, z) {
   var a = this.a;
 
   if (x !== undefined && y === undefined && z === undefined) {
@@ -56,6 +56,8 @@ Array3d.prototype.lookup = function(x, y, z) {
 
   return null;
 }
+
+Array3d.prototype.lookup = Array3d.prototype.get;
 
 
 

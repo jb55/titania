@@ -3,9 +3,9 @@
 // Terrain
 //===----------------------------------------------------------------------===//
 function Terrain(texture, world) {
+
   this.texture = texture;
   this.chunkBuilder = function() {}
-  this.events = new Ti.EventEmitter();
   this.firstChunkLoaded = false;
   this.chunks = Ti.a3d();
   this.gridSize = 1.0;
@@ -20,12 +20,13 @@ function Terrain(texture, world) {
   this.xs = 20;
   this.zs = 20;
 
-  this.events.on('load_chunks', function(pos){
+  this.on('load_chunks', function(pos){
     var player = world.getPlayer();
     self.buildChunks(player.getPosition());
   });
 
 }
+_.extend(Terrain.prototype, Ti.EventEmitter);
 
 
 //===----------------------------------------------------------------------===//
@@ -53,7 +54,7 @@ Terrain.prototype.buildChunk = function(chunk) {
 
   if (!this.firstChunkLoaded) {
     this.firstChunkLoaded = true;
-    this.events.emit("first_chunk", builtChunk);
+    this.emit("first_chunk", builtChunk);
   }
 
   return builtChunk;
@@ -114,11 +115,13 @@ Terrain.prototype.getChunksToLoad = function(pos) {
   }
 
   function doChunk(pos_) {
+    assert(!self.chunks.get(self.xs, self.ys, self.zs), "Chunk already exists there");
+
     var chunk = new Chunk(
         self.xs
       , self.ys
       , self.zs
-      , pos
+      , pos_
       , self.gridSize
     );
 
@@ -145,8 +148,8 @@ Terrain.prototype.getChunksToLoad = function(pos) {
       return [doChunk(p)];
     }
 
-    var chunkPositions = onChunk.getUnloadedAdjacent(this.chunks);
-    return _.map(chunkPositions, doChunk);
+//  var chunkPositions = onChunk.getUnloadedAdjacent(this.chunks);
+//  return _.map(chunkPositions, doChunk);
   }
 
   return [];
@@ -185,6 +188,8 @@ Terrain.prototype.getChunkPos = function(pos) {
   coord[0] *= this.xs;
   coord[1] *= this.ys;
   coord[2] *= this.zs;
+
+  console.log("getChunkPos: " + coord[0] + " " + coord[1] + " " + coord[2]);
 
   return coord;
 }

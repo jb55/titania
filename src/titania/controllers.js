@@ -1,16 +1,16 @@
 
-
 //===----------------------------------------------------------------------===//
 // InputController
 //===----------------------------------------------------------------------===//
 function InputController(node, moveAmount, input, flags) {
   this.input = input || new Ti.Input();
   this.flags = flags || InputController.DEFAULT;
-  this.events = new Ti.EventEmitter();
   this.node = node;
   this.getMoveAmount = !(moveAmount instanceof Function) ?
                        function() { return moveAmount; } : moveAmount;
 }
+
+_.extend(InputController.prototype, Ti.EventEmitter);
 
 InputController.ROTATE  = 1 << 0;
 InputController.REV     = 1 << 1;
@@ -51,7 +51,7 @@ InputController.prototype.update = function() {
 
   if (!vec3.isZero(v)) {
     vec3.scale(vec3.normalize(v), moveAmount * (keyboard.shift ? 2 : 1), v);
-    this.events.emit('move', v);
+    this.emit('move', v);
     this.node.translate(v);
   }
 

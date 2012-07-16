@@ -103,7 +103,7 @@ Chunk.prototype.getUnloadedAdjacent = function(chunks) {
     }
   }
 
-  return chunks;
+  return vectors;
 }
 
 

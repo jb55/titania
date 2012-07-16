@@ -1,1 +1,1 @@
-var Ti = {}
+var Ti = {};

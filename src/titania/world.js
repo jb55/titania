@@ -18,7 +18,7 @@ function World(elem, vshader, fshader, fps) {
   this.scene = new Ti.Scene();
   var canvas = document.getElementById(elem);
   this.input = new Ti.Input(canvas);
-  this.events = new WorldEvents(this.input, this);
+
   canvas.width = this.width;
   canvas.height = this.height;
 
@@ -66,6 +66,7 @@ function World(elem, vshader, fshader, fps) {
   return true;
 }
 
+_.extend(World.prototype, Ti.EventEmitter);
 
 //===----------------------------------------------------------------------===//
 // initTestWorld
@@ -74,7 +75,7 @@ function initTestWorld(world) {
   var gl = world.gl;
   world.map = test_map;
 
-  world.terrain.events.on('first_chunk', function(chunk) {
+  world.terrain.on('first_chunk', function(chunk) {
     var cubeGeometry = Ti.Geometry.copy(gl, chunk.getGeometry());
     cubeGeometry.numElements = 36;
 
@@ -94,7 +95,7 @@ function initTestWorld(world) {
     var player = world.player = createPlayer(gl, playerNode, cubeGeometry);
     world.entities.push(player);
 
-    //playerNode.translate([10, 10, 1]);
+    //playerNode.trnanslate([10, 10, 1]);
 
     player.orientation_controller =
       new FacingController(playerNode);
@@ -109,8 +110,8 @@ function initTestWorld(world) {
     player.movement_controller =
       new InputController(playerNode, 0.12, world.input);
 
-    player.movement_controller.events.on('move', function(p){
-      world.terrain.events.emit('load_chunks');
+    player.movement_controller.on('move', function(p){
+      world.terrain.emit('load_chunks');
     });
 
     world.scene.attachController(
@@ -120,7 +121,7 @@ function initTestWorld(world) {
       new BobbingController(playerNode, 0.1, 0.01, 2);
 
     //test click move
-    world.events.on("clickWorld", function(v, x, y){
+    world.on("clickWorld", function(v, x, y){
     });
 
   });
