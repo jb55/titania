@@ -111,7 +111,7 @@ function initTestWorld(world) {
       new InputController(playerNode, 0.12, world.input);
 
     player.movement_controller.on('move', function(p){
-      world.terrain.emit('load_chunks');
+      world.terrain.emit('load_chunks', player.getPosition());
     });
 
     world.scene.attachController(
@@ -128,7 +128,7 @@ function initTestWorld(world) {
 
   world.terrain.loadMap(gl, world.map);
 
-  world.terrain.buildChunks(vec3.create([0,0,0]));
+  world.terrain.emit('load_chunks', vec3.create2(0, 0, 0));
 }
 
 //===----------------------------------------------------------------------===//

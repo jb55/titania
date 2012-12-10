@@ -84,16 +84,16 @@ Chunk.prototype.getUnloadedAdjacent = function(chunks) {
   var vectors = [];
 
   for (var x = -1; x <= 1; ++x) {
-    for (var y = -1; y <= 1; ++y) {
+    for (var y = -5; y <= 0; ++y) {
       for (var z = -1; z <= 1; ++z) {
 
         // ignore self
         if (x === 0 && y === 0 && z === 0)
           continue;
 
-        var xp = this.pos[0] + x
-          , yp = this.pos[1] + y
-          , zp = this.pos[2] + z;
+        var xp = this.coord[0] + x
+          , yp = this.coord[1] + y
+          , zp = this.coord[2] + z;
 
         var chunk = chunks.lookup(xp, yp, zp);
 

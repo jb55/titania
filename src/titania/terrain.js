@@ -21,8 +21,7 @@ function Terrain(texture, world) {
   this.zs = 20;
 
   this.on('load_chunks', function(pos){
-    var player = world.getPlayer();
-    self.buildChunks(player.getPosition());
+    self.buildChunks(pos);
   });
 
 }
@@ -114,18 +113,23 @@ Terrain.prototype.getChunksToLoad = function(pos) {
     return Math.floor(x) / 2;
   }
 
-  function doChunk(pos_) {
-    assert(!self.chunks.get(self.xs, self.ys, self.zs), "Chunk already exists there");
+  function doChunk(coord) {
+
+    var pos = vec3.create2( self.xs * coord[0]
+                          , self.ys * coord[1]
+                          , self.zs * coord[2]);
 
     var chunk = new Chunk(
         self.xs
       , self.ys
       , self.zs
-      , pos_
+      , pos
       , self.gridSize
     );
 
-    self.chunks.set(chunk, chunk.getCoord());
+    assert(!self.chunks.get(chunk.coord), "Chunk already exists there");
+
+    self.chunks.set(chunk, chunk.coord);
     return chunk;
   }
 
@@ -140,20 +144,20 @@ Terrain.prototype.getChunksToLoad = function(pos) {
   var isNearBoundary = delta <= triggerDist;
 
   if (true || isNearBoundary) {
-    var onChunk = this.getChunkFromPos(pos);
+    var onChunk = self.getChunkFromPos(pos);
 
     if (!onChunk) {
       // the chunk that the player is on is not loaded, might as well load it!
-      var p = this.getChunkPos(pos);
+      var p = self.getChunkCoord(pos);
       return [doChunk(p)];
     }
 
-//  var chunkPositions = onChunk.getUnloadedAdjacent(this.chunks);
-//  return _.map(chunkPositions, doChunk);
+    var chunkCoords = onChunk.getUnloadedAdjacent(self.chunks);
+    return _.map(chunkCoords, doChunk);
   }
 
   return [];
-}
+};
 
 //===----------------------------------------------------------------------===//
 // Terrain.prototype.getChunkCoord
@@ -161,8 +165,7 @@ Terrain.prototype.getChunksToLoad = function(pos) {
 //===----------------------------------------------------------------------===//
 Terrain.prototype.getChunkCoord = function(pos) {
   return Terrain.chunkCoord(pos, this.xs, this.ys, this.zs);
-}
-
+};
 
 
 //===----------------------------------------------------------------------===//
@@ -174,7 +177,7 @@ Terrain.chunkCoord = function(pos, xs, ys, zs) {
     , yp = Math.floor(pos[1] / ys)
     , zp = Math.floor(pos[2] / zs);
   return Ti.v3(xp, yp, zp);
-}
+};
 
 
 
@@ -185,13 +188,10 @@ Terrain.chunkCoord = function(pos, xs, ys, zs) {
 Terrain.prototype.getChunkPos = function(pos) {
   var coord = this.getChunkCoord(pos);
 
-  coord[0] *= this.xs;
-  coord[1] *= this.ys;
-  coord[2] *= this.zs;
-
-  console.log("getChunkPos: " + coord[0] + " " + coord[1] + " " + coord[2]);
-
-  return coord;
+  return vec3.create2( coord[0] * this.xs
+                     , coord[1] * this.ys
+                     , coord[2] * this.zs
+                     );
 }
 
 
@@ -207,7 +207,7 @@ Terrain.prototype.getChunkFromPos = function(pos) {
     , z = pos[2];
 
   var coord = this.getChunkCoord(pos);
-  return this.chunks.lookup(coord);
+  return this.chunks.lookup(coord[0], coord[1], coord[2]);
 }
 
 
@@ -266,7 +266,7 @@ Terrain.mapLoader = function(gl, data) {
 //   load a 3d-noise-based map
 //===----------------------------------------------------------------------===//
 Terrain.noiseMapLoader = function(gl, seed) {
-  var seedFn = Ti.Math.seedRandom(seed);
+  var seedFn = Math.random;//Ti.Math.seedRandom(seed);
   var noise = Ti.getNoiseFunctions('simplex', seedFn);
   var blockFn = Terrain.worldGenFn(noise.noise3d.bind(noise));
   return blockFn;
